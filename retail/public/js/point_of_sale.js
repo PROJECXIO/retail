@@ -13,18 +13,19 @@ frappe.pages["point-of-sale"].on_page_load = function (wrapper) {
         erpnext.PointOfSale.ItemSelector.prototype.make_search_bar =
             function make_search_bar_with_barcode() {
                 make_search_bar.call(this);
+                const me = this;
                 this.barcode_search_field = frappe.ui.form.make_control({
                     df: {
                         label: __("Search"),
                         fieldtype: "Data",
                         options: "Barcode",
+                        onchange: function () {
+                            me.set_search_value(this.value || "");
+                            me.search_field.set_focus();
+                        },
                     },
                     parent: this.$component.find(".item-group-field"),
                     render_input: true,
-                    onchange: function () {
-                        this.set_search_value(this.value || "");
-                        this.search_field.set_focus();
-                    },
                 });
                 this.barcode_search_field.toggle_label(false);
             };
