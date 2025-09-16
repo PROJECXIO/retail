@@ -1,7 +1,7 @@
-.point-of-sale-app>.items-selector>.filter-section>.item-group-field {
+.point-of-sale-app > .items-selector > .filter-section > .item-group-field{
     gap: 5px !important;
 }
 
-.point-of-sale-app>.items-selector>.filter-section>.item-group-field>div[data-fieldtype="Data"] {
+.point-of-sale-app > .items-selector > .filter-section > .item-group-field > div[data-fieldtype="Data"]{
     width: 30px !important;
 }
