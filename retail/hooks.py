@@ -25,7 +25,7 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/retail/css/retail.css"
+app_include_css = ["/assets/retail/css/point_of_sale.css"]
 # app_include_js = "/assets/retail/js/retail.js"
 
 # include js, css files in header of web template
@@ -40,7 +40,7 @@ app_license = "mit"
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {"point-of-sale": "public/js/point_of_sale.js"}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -129,9 +129,9 @@ app_license = "mit"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice"
+}
 
 # Document Events
 # ---------------
@@ -174,9 +174,10 @@ app_license = "mit"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "retail.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "retail.overrides.whitelist.pos_invoice.get_stock_availability",
+    "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "retail.overrides.whitelist.pos_invoice.get_items",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -241,4 +242,3 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
