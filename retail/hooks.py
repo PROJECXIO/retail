@@ -25,7 +25,9 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = ["/assets/retail/css/point_of_sale.css"]
+app_include_css = [
+    "retail.bundle.css",
+]
 # app_include_js = "/assets/retail/js/retail.js"
 
 # include js, css files in header of web template
@@ -40,11 +42,17 @@ app_include_css = ["/assets/retail/css/point_of_sale.css"]
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-page_js = {"point-of-sale": "public/js/point_of_sale.js"}
+page_js = {
+    "point-of-sale": "public/js/page/point_of_sale.js",
+}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_js = {
+    "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice.js",
+}
+doctype_list_js = {
+    "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -130,7 +138,7 @@ page_js = {"point-of-sale": "public/js/point_of_sale.js"}
 # Override standard doctype classes
 
 override_doctype_class = {
-	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice"
+	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice",
 }
 
 # Document Events
@@ -174,10 +182,10 @@ override_doctype_class = {
 # Overriding Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-    "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "retail.overrides.whitelist.pos_invoice.get_stock_availability",
-    "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "retail.overrides.whitelist.pos_invoice.get_items",
-}
+# override_whitelisted_methods = {
+    # "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "retail.overrides.whitelist.pos_invoice.get_stock_availability",
+    # "retail.overrides.page.point_of_sale.point_of_sale.get_items": "retail.overrides.whitelist.pos_invoice.get_items",
+# }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
