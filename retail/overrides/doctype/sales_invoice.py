@@ -484,14 +484,14 @@ class SalesInvoice(SellingController):
 				frappe.throw(msg, title=_("Not Allowed"))
 
 	def check_if_created_using_pos_and_pos_closing_entry_generated(self):
-		if self.doctype == "Sales Invoice" and self.is_created_using_pos and self.pos_closing_entry:
+		if self.doctype == "Sales Invoice" and self.is_created_using_pos and self.custom_pos_closing_entry:
 			pos_closing_entry_docstatus = frappe.db.get_value(
-				"POS Closing Entry", self.pos_closing_entry, "docstatus"
+				"POS Closing Entry", self.custom_pos_closing_entry, "docstatus"
 			)
 			if pos_closing_entry_docstatus == 1:
 				frappe.throw(
 					msg=_("To cancel this Sales Invoice you need to cancel the POS Closing Entry {}.").format(
-						get_link_to_form("POS Closing Entry", self.pos_closing_entry)
+						get_link_to_form("POS Closing Entry", self.custom_pos_closing_entry)
 					),
 					title=_("Not Allowed"),
 				)
@@ -575,7 +575,7 @@ class SalesInvoice(SellingController):
 			and self.is_pos
 			and self.is_return
 			and self.is_created_using_pos
-			and not self.pos_closing_entry
+			and not self.custom_pos_closing_entry
 		):
 			self.cancel_pos_invoice_credit_note_generated_during_sales_invoice_mode()
 
