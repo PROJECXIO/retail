@@ -1020,7 +1020,8 @@ class SalesInvoice(SellingController):
 		if self.is_created_using_pos and not self.pos_profile:
 			frappe.throw(_("POS Profile is mandatory to mark this invoice as POS Transaction."))
 
-		self.invoice_type_in_pos = frappe.db.get_single_value("POS Settings", "invoice_type")
+		# self.invoice_type_in_pos = frappe.db.get_single_value("POS Settings", "invoice_type")
+		self.invoice_type_in_pos = "Sales Invoice"
 		if self.invoice_type_in_pos == "POS Invoice" and not self.is_return:
 			frappe.throw(_("Transactions using Sales Invoice in POS are disabled."))
 
