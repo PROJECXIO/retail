@@ -1047,7 +1047,7 @@ class SalesInvoice(SellingController):
 		opening_entries = frappe.get_all(
 			"POS Opening Entry",
 			fields=["name", "period_start_date"],
-			filters={"pos_profile": self.pos_profile, "status": "Open"},
+			filters={"user": frappe.session.user, "pos_profile": self.pos_profile, "status": "Open"},
 			order_by="period_start_date desc",
 		)
 		if not opening_entries:
