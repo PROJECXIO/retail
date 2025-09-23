@@ -49,6 +49,7 @@ page_js = {
 # include js in doctype views
 doctype_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice.js",
+    "POS Closing Entry" : "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
 }
 doctype_list_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
@@ -139,6 +140,8 @@ doctype_list_js = {
 
 override_doctype_class = {
 	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice",
+	"POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
+	"Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
 }
 
 # Document Events
