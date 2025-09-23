@@ -31,7 +31,8 @@ class POSClosingEntry(BasePOSClosingEntry):
 			self.posting_time = frappe.utils.nowtime()
 
 	def fetch_invoice_type(self):
-		self.invoice_type = frappe.db.get_single_value("POS Settings", "invoice_type")
+		# self.invoice_type = frappe.db.get_single_value("POS Settings", "invoice_type")
+		self.invoice_type = "Sales Invoice"
 
 	def validate_pos_opening_entry(self):
 		if frappe.db.get_value("POS Opening Entry", self.pos_opening_entry, "status") != "Open":
@@ -220,7 +221,8 @@ def get_cashiers(doctype, txt, searchfield, start, page_len, filters):
 
 @frappe.whitelist()
 def get_invoices(start, end, pos_profile, user):
-	invoice_doctype = frappe.db.get_single_value("POS Settings", "invoice_type")
+	# invoice_doctype = frappe.db.get_single_value("POS Settings", "invoice_type")
+	invoice_doctype = "Sales Invoice"
 
 	sales_inv_query = build_invoice_query("Sales Invoice", user, pos_profile, start, end)
 
