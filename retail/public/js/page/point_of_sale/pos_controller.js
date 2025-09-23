@@ -140,7 +140,7 @@ erpnext.PointOfSale.Controller = class {
 		});
 
 		// const invoice_doctype = await frappe.db.get_single_value("POS Settings", "invoice_type");
-		const invoice_doctype = "POS Invoice";
+		const invoice_doctype = "Sales Invoice";
 
 		frappe.call({
 			method: "retail.overrides.page.point_of_sale.get_pos_profile_data",
