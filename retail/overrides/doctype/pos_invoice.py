@@ -330,21 +330,21 @@ class POSInvoice(BasePOSInvoice):
 				if is_negative_stock_allowed(item_code=d.item_code):
 					return
 
-				available_stock, is_stock_item = get_stock_availability(d.item_code, d.warehouse)
+				available_stock, is_stock_item, delivered_by_supplier = get_stock_availability(d.item_code, d.warehouse, self.pos_profile)
 
 				item_code, warehouse, _qty = (
 					frappe.bold(d.item_code),
 					frappe.bold(d.warehouse),
 					frappe.bold(d.qty),
 				)
-				if is_stock_item and flt(available_stock) <= 0:
+				if is_stock_item and flt(available_stock) <= 0 and not delivered_by_supplier:
 					frappe.throw(
 						_("Row #{}: Item Code: {} is not available under warehouse {}.").format(
 							d.idx, item_code, warehouse
 						),
 						title=_("Item Unavailable"),
 					)
-				elif is_stock_item and flt(available_stock) < flt(d.stock_qty):
+				elif is_stock_item and flt(available_stock) < flt(d.stock_qty) and not delivered_by_supplier:
 					frappe.throw(
 						_(
 							"Row #{}: Stock quantity not enough for Item Code: {} under warehouse {}. Available quantity {}."
@@ -777,21 +777,31 @@ class POSInvoice(BasePOSInvoice):
 
 
 @frappe.whitelist()
-def get_stock_availability(item_code, warehouse):
+def get_stock_availability(item_code, warehouse, pos_profile):
+	pos_profile_company = frappe.db.get_value("POS Profile", pos_profile, "company")
+	shows_warehouses = frappe.get_all("Item Supplier", {
+		"parenttype": "Item",
+		"parent": item_code,
+		"custom_warehouse_company": pos_profile_company,
+		"custom_supplier_warehouse": ["!=", warehouse]
+	}, pluck="custom_supplier_warehouse")
+	delivered_by_supplier = frappe.db.get_value("Item", item_code, "delivered_by_supplier")
 	if frappe.db.get_value("Item", item_code, "is_stock_item"):
-		is_stock_item = True
+		is_stock_item = True	
 		bin_qty = get_bin_qty(item_code, warehouse)
 		pos_sales_qty = get_pos_reserved_qty(item_code, warehouse)
-
-		return bin_qty - pos_sales_qty, is_stock_item
+		for wh in shows_warehouses:
+			bin_qty += get_bin_qty(item_code, wh)
+			pos_sales_qty += get_pos_reserved_qty(item_code, wh)
+		return bin_qty - pos_sales_qty, is_stock_item, delivered_by_supplier
 	else:
 		is_stock_item = True
 		if frappe.db.exists("Product Bundle", {"name": item_code, "disabled": 0}):
-			return get_bundle_availability(item_code, warehouse), is_stock_item
+			return get_bundle_availability(item_code, warehouse), is_stock_item, delivered_by_supplier
 		else:
 			is_stock_item = False
 			# Is a service item or non_stock item
-			return 0, is_stock_item
+			return 0, is_stock_item, delivered_by_supplier
 
 
 def get_bundle_availability(bundle_item_code, warehouse):
@@ -826,13 +836,40 @@ def get_bin_qty(item_code, warehouse):
 
 
 def get_pos_reserved_qty(item_code, warehouse):
+	# p_inv = frappe.qb.DocType("POS Invoice")
+	# p_item = frappe.qb.DocType("POS Invoice Item")
+
+	# reserved_qty = (
+	# 	frappe.qb.from_(p_inv)
+	# 	.from_(p_item)
+	# 	.select(Sum(p_item.stock_qty).as_("stock_qty"))
+	# 	.where(
+	# 		(p_inv.name == p_item.parent)
+	# 		& (IfNull(p_inv.consolidated_invoice, "") == "")
+	# 		& (p_item.docstatus == 1)
+	# 		& (p_item.item_code == item_code)
+	# 		& (p_item.warehouse == warehouse)
+	# 	)
+	# ).run(as_dict=True)
+
+	# return flt(reserved_qty[0].stock_qty) if reserved_qty else 0
+	pinv_item_reserved_qty = get_pos_reserved_qty_from_table("POS Invoice Item", item_code, warehouse)
+	packed_item_reserved_qty = get_pos_reserved_qty_from_table("Packed Item", item_code, warehouse)
+
+	reserved_qty = pinv_item_reserved_qty + packed_item_reserved_qty
+
+	return reserved_qty
+
+def get_pos_reserved_qty_from_table(child_table, item_code, warehouse):
 	p_inv = frappe.qb.DocType("POS Invoice")
-	p_item = frappe.qb.DocType("POS Invoice Item")
+	p_item = frappe.qb.DocType(child_table)
+
+	qty_column = "qty" if child_table == "Packed Item" else "stock_qty"
 
 	reserved_qty = (
 		frappe.qb.from_(p_inv)
 		.from_(p_item)
-		.select(Sum(p_item.stock_qty).as_("stock_qty"))
+		.select(Sum(p_item[qty_column]).as_("stock_qty"))
 		.where(
 			(p_inv.name == p_item.parent)
 			& (IfNull(p_inv.consolidated_invoice, "") == "")

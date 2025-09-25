@@ -8,13 +8,14 @@ import frappe
 from frappe.utils import cint, get_datetime
 from frappe.utils.nestedset import get_root_of
 
-from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_item_group, get_stock_availability
+from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_item_group
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_child_nodes, get_item_groups
 from erpnext.stock.get_item_details import get_conversion_factor
 from erpnext.stock.utils import scan_barcode
 
+from retail.overrides.doctype.pos_invoice import get_stock_availability
 
-def search_by_term(search_term, warehouse, price_list):
+def search_by_term(search_term, warehouse, price_list, pos_profile):
 	result = search_for_serial_or_batch_or_barcode_number(search_term) or {}
 
 	item_code = result.get("item_code", search_term)
@@ -55,7 +56,7 @@ def search_by_term(search_term, warehouse, price_list):
 				}
 			)
 
-	item_stock_qty, is_stock_item = get_stock_availability(item_code, warehouse)
+	item_stock_qty, is_stock_item, delivered_by_supplier = get_stock_availability(item_code, warehouse, pos_profile)
 	item_stock_qty = item_stock_qty // item.get("conversion_factor", 1)
 	item.update({"actual_qty": item_stock_qty})
 
@@ -137,7 +138,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 	result = []
 
 	if search_term:
-		result = search_by_term(search_term, warehouse, price_list) or []
+		result = search_by_term(search_term, warehouse, price_list, pos_profile) or []
 		filter_result_items(result, pos_profile)
 		if result:
 			return result
@@ -198,7 +199,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 	current_date = frappe.utils.today()
 
 	for item in items_data:
-		item.actual_qty, _ = get_stock_availability(item.item_code, warehouse)
+		item.actual_qty, _, delivered_by_supplier = get_stock_availability(item.item_code, warehouse, pos_profile)
 
 		item_prices = frappe.get_all(
 			"Item Price",
