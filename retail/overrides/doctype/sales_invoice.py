@@ -679,11 +679,16 @@ class SalesInvoice(SellingController):
 		if len(so.items) == 0:
 			return
 		so.save(ignore_permissions=True)
-		so.submit()
 
 		for ii, si in enumerate(so.items):
 			self.items[ii].set("sales_order", so.name)
 			self.items[ii].set("so_detail", si.name)
+			if not self.items[ii].delivered_by_supplier:
+				si.set("supplier", None)
+			si.set("delivered_by_supplier", self.items[ii].delivered_by_supplier)
+		so.save(ignore_permissions=True)
+		so.submit()
+
 
 	def validate_standalone_serial_nos_customer(self):
 		if not self.is_return or self.return_against:
