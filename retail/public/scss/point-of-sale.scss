@@ -56,6 +56,16 @@
 		margin-left: var(--margin-sm);
 		margin-right: var(--margin-md);
 		border-bottom: 1px solid var(--gray-300);
+		display: flex;
+		gap: 10px;
+		flex-flow: row-reverse;
+		padding-bottom: 5px;
+		> .indicator-pill{
+			border-radius: 5px;
+			&:hover {
+				cursor: pointer;
+			}
+		}
 	}
 
 	.primary-action {
