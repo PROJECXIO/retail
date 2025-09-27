@@ -638,7 +638,74 @@ class SalesInvoice(SellingController):
 			self.apply_loyalty_points()
 
 		self.process_common_party_accounting()
+		self.handle_used_from_show_qty()
 	
+	def handle_used_from_show_qty(self):
+		items_for_each_supplier = {}
+		for item in self.items:
+			if cint(item.custom_is_from_show_warehouse) == 0:
+				continue
+
+			default_supplier = frappe.db.get_value("Item Default", {"parenttype": "Item", "parent": item.item_code, "company": self.company}, "default_supplier")
+			if not default_supplier:
+				continue
+			exists = frappe.db.exists("Item Supplier", {"supplier": default_supplier, "custom_warehouse_company": self.company, "parenttype": "Item", "parent": item.item_code})
+			if not exists:
+				continue
+			item_supplier = frappe.get_doc("Item Supplier", exists)
+			if flt(item_supplier.custom_quantity_supplied_for_shows) == 0 or not item_supplier.custom_supplier_warehouse:
+				continue
+			data = items_for_each_supplier.get(item_supplier.supplier, {})
+			items = data.get("items", [])
+			items.append(item.as_dict())
+			items_for_each_supplier.update({
+				f"{item_supplier.supplier}": {
+					"items": items,
+					"item_supplier": {
+						"warehouse": item_supplier.custom_supplier_warehouse,
+						"qty": flt(item_supplier.custom_quantity_supplied_for_shows),
+					},
+				},
+			})
+		if not items_for_each_supplier:
+			return
+		for k, v in items_for_each_supplier.items():
+			po_items = v.get("items")
+			item_supplier = v.get("item_supplier")
+			warehouse = item_supplier.get("warehouse")
+			qty = item_supplier.get("qty")
+			
+			if not warehouse or not qty:
+				continue
+
+			po = frappe.new_doc("Purchase Order")
+			po.supplier = k
+			po.supplier = self.posting_date
+			schedule_date = add_days(self.posting_date, 1)
+			po.transaction_date = self.posting_date
+			po.schedule_date = schedule_date
+			po.company = self.company
+			po.currency = self.currency
+			po.set_warehouse = warehouse
+			for i in po_items:
+				del i["parenttype"]
+				del i["parent"]
+				del i["name"]
+				del i["idx"]
+				if flt(i.qty) > qty:
+					i.update({
+						"qty": flt(i.qty) - qty
+					})
+				i.update({
+					"schedule_date": schedule_date,
+				})
+				po.append("items", i)
+			po.save(ignore_permissions=True)
+			
+
+
+
+
 	def handle_dropshipping_for_items(self):
 		# Create Sales Order for Drop-Ship Items only
 		so = frappe.new_doc("Sales Order")

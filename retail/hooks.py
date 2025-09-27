@@ -50,6 +50,7 @@ page_js = {
 doctype_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice.js",
     "POS Closing Entry" : "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
+    "Item" : "public/js/doctype/item/item.js",
 }
 doctype_list_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
