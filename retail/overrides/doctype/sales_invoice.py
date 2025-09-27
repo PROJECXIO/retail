@@ -48,7 +48,7 @@ from erpnext.assets.doctype.asset.depreciation import (
 
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.controllers.accounts_controller import validate_account_head
-from erpnext.controllers.selling_controller import SellingController
+from erpnext.controllers.selling_controller import SellingController, get_serial_and_batch_bundle
 from erpnext.projects.doctype.timesheet.timesheet import get_projectwise_timesheet_data
 from erpnext.setup.doctype.company.company import update_company_current_month_sales
 from erpnext.stock.doctype.delivery_note.delivery_note import update_billed_amount_based_on_so
@@ -57,6 +57,7 @@ form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 from erpnext.stock.get_item_details import (
 	get_pos_profile,
 	get_bin_details,
+	get_conversion_factor,
 )
 
 class PartialPaymentValidationError(frappe.ValidationError):
@@ -170,7 +171,128 @@ class SalesInvoice(SellingController):
 			self.indicator_color = "green"
 			self.indicator_title = _("Paid")
 
+	def split_quantity(self):
+		self.custom_pos_drop_ship_item_details = []
+
+		shows_items = []
+		drop_ship_items = []
+		last_idx = self.items[-1].idx
+		for item in self.items:
+			if item.idx > last_idx:
+				break
+			_total_qty = 0
+			_store_qty = 0
+			_show_qty = 0
+			_drop_ship_qty = 0
+
+			actual_qty = (
+				frappe.db.get_value(
+					"Bin", {"item_code": item.item_code, "warehouse": item.warehouse}, "actual_qty"
+				)
+				or 0
+			)
+			item.delivered_by_supplier = 0
+			remain_qty = flt(item.qty) - actual_qty
+			if flt(item.qty) > actual_qty:
+				if self.docstatus == 1:
+					item.qty = actual_qty
+				shows_warehouses = frappe.get_all("Item Supplier", filters={
+					"parenttype": "Item",
+					"parent": item.item_code,
+					"custom_warehouse_company": self.company,
+					"custom_supplier_warehouse": ["!=", item.warehouse]
+				}, fields="*")
+				for row in shows_warehouses:
+					actual_show_qty = (
+						frappe.db.get_value(
+							"Bin", {"item_code": item.item_code, "warehouse": row.custom_supplier_warehouse}, "actual_qty"
+						)
+						or 0
+					)
+					# remove used qty from current invoice items
+					used_qty = 0
+
+					actual_show_qty -= used_qty
+					if actual_show_qty <= 0:
+						continue
+					if remain_qty > actual_show_qty:
+						new_show_item = {}
+						_show_qty += actual_show_qty
+						new_show_item.update(item.as_dict())
+						new_show_item.update({
+							"qty": actual_show_qty,
+							"warehouse": row.custom_supplier_warehouse,
+							"delivered_by_supplier": 0,
+							"custom_is_from_show_warehouse": 1,
+						})
+						remain_qty -= actual_show_qty
+						if remain_qty <=0 :
+							remain_qty = 0
+						shows_items.append(new_show_item)
+					else:
+						new_show_item = {}
+						new_show_item.update(item.as_dict())
+						_show_qty += remain_qty
+						new_show_item.update({
+							"qty": remain_qty,
+							"warehouse": row.custom_supplier_warehouse,
+							"delivered_by_supplier": 0,
+							"custom_is_from_show_warehouse": 1,
+						})
+						shows_items.append(new_show_item)
+						break
+			if remain_qty < 0:
+				remain_qty = 0
+			if remain_qty > 0:
+				new_drop_shop_item = {}
+				new_drop_shop_item.update(item.as_dict())
+				new_drop_shop_item.update({
+					"qty": remain_qty,
+					"warehouse": "",
+					"delivered_by_supplier": 1,
+				})
+				drop_ship_items.append(new_drop_shop_item)
+			_drop_ship_qty = remain_qty
+			
+			if self.docstatus == 0:
+				_total_qty = item.qty
+				_store_qty = _total_qty - _drop_ship_qty - _show_qty
+			else:
+				_store_qty = item.qty
+				_total_qty = _store_qty + _drop_ship_qty + _show_qty
+			self.append("custom_pos_drop_ship_item_details", {
+				"item_code": item.item_code,
+				"total_qty": _total_qty,
+				"store_qty": _store_qty,
+				"show_qty": _show_qty,
+				"drop_ship_qty": _drop_ship_qty,
+			})
+		if self.docstatus == 1:
+			for ni1 in shows_items:
+				del ni1["name"]
+				del ni1["idx"]
+				self.append("items", ni1)
+			
+			for ni2 in drop_ship_items:
+				del ni2["name"]
+				del ni2["idx"]
+				self.append("items", ni2)
+			final_items = []
+			for i1 in self.items:
+				if flt(i1.qty) == 0:
+					continue
+				final_items.append(i1)
+			self.items = []
+			for i2 in final_items:
+				self.append("items", i2)
+
+	def before_validate(self):
+		if cint(self.update_stock) and cint(self.is_pos) and self.pos_profile:
+			self.split_quantity()
+
 	def validate(self):
+		self.reset_default_field_value("set_warehouse", "items", "warehouse")
+
 		self.validate_auto_set_posting_time()
 		super().validate()
 
@@ -208,7 +330,7 @@ class SalesInvoice(SellingController):
 			self.validate_created_using_pos()
 			self.validate_full_payment()
 
-		self.validate_dropship_item()
+		# self.validate_dropship_item()
 
 		if cint(self.update_stock):
 			self.validate_warehouse()
@@ -245,7 +367,6 @@ class SalesInvoice(SellingController):
 			validate_loyalty_points(self, self.loyalty_points)
 
 		self.allow_write_off_only_on_pos()
-		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 
 	def validate_accounts(self):
 		self.validate_write_off_account()
@@ -341,6 +462,105 @@ class SalesInvoice(SellingController):
 
 	def before_submit(self):
 		self.add_remarks()
+		if cint(self.is_pos) and self.pos_profile:
+			self.handle_dropshipping_for_items()
+
+	def get_item_list(self):
+		il = []
+		for d in self.get("items"):
+			if d.qty is None:
+				frappe.throw(_("Row {0}: Qty is mandatory").format(d.idx))
+
+			if self.has_product_bundle(d.item_code):
+				for p in self.get("packed_items"):
+					if p.parent_detail_docname == d.name and p.parent_item == d.item_code:
+						# the packing details table's qty is already multiplied with parent's qty
+						il.append(
+							frappe._dict(
+								{
+									"warehouse": p.warehouse or d.warehouse,
+									"item_code": p.item_code,
+									"qty": flt(p.qty),
+									"serial_no": p.serial_no if self.docstatus == 2 else None,
+									"batch_no": p.batch_no if self.docstatus == 2 else None,
+									"uom": p.uom,
+									"serial_and_batch_bundle": p.serial_and_batch_bundle
+									or get_serial_and_batch_bundle(p, self, d),
+									"name": d.name,
+									"target_warehouse": p.target_warehouse,
+									"company": self.company,
+									"voucher_type": self.doctype,
+									"allow_zero_valuation": d.allow_zero_valuation_rate,
+									"sales_invoice_item": d.get("sales_invoice_item"),
+									"dn_detail": d.get("dn_detail"),
+									"incoming_rate": p.get("incoming_rate"),
+									"delivered_by_supplier": p.get("delivered_by_supplier", 0),
+									"item_row": p,
+								}
+							)
+						)
+			else:
+				il.append(
+					frappe._dict(
+						{
+							"warehouse": d.warehouse,
+							"item_code": d.item_code,
+							"qty": d.stock_qty,
+							"serial_no": d.serial_no if self.docstatus == 2 else None,
+							"batch_no": d.batch_no if self.docstatus == 2 else None,
+							"uom": d.uom,
+							"stock_uom": d.stock_uom,
+							"conversion_factor": d.conversion_factor,
+							"serial_and_batch_bundle": d.serial_and_batch_bundle,
+							"name": d.name,
+							"target_warehouse": d.target_warehouse,
+							"company": self.company,
+							"voucher_type": self.doctype,
+							"allow_zero_valuation": d.allow_zero_valuation_rate,
+							"delivered_by_supplier": d.get("delivered_by_supplier", 0),
+							"sales_invoice_item": d.get("sales_invoice_item"),
+							"dn_detail": d.get("dn_detail"),
+							"incoming_rate": d.get("incoming_rate"),
+							"item_row": d,
+						}
+					)
+				)
+
+		return il
+
+	def update_stock_ledger(self, allow_negative_stock=False):
+		self.update_reserved_qty()
+		sl_entries = []
+		# Loop over items and packed items table
+		for d in self.get_item_list():
+			if cint(d.delivered_by_supplier) == 1:
+				continue
+			if frappe.get_cached_value("Item", d.item_code, "is_stock_item") == 1 and flt(d.qty):
+				if flt(d.conversion_factor) == 0.0:
+					d.conversion_factor = (
+						get_conversion_factor(d.item_code, d.uom).get("conversion_factor") or 1.0
+					)
+
+				# On cancellation or return entry submission, make stock ledger entry for
+				# target warehouse first, to update serial no values properly
+
+				if d.warehouse and (
+					(not cint(self.is_return) and self.docstatus == 1)
+					or (cint(self.is_return) and self.docstatus == 2)
+				):
+					sl_entries.append(self.get_sle_for_source_warehouse(d))
+
+				if d.target_warehouse:
+					sl_entries.append(self.get_sle_for_target_warehouse(d))
+
+				if d.warehouse and (
+					(not cint(self.is_return) and self.docstatus == 2)
+					or (cint(self.is_return) and self.docstatus == 1)
+				):
+					sl_entries.append(self.get_sle_for_source_warehouse(d))
+		if len(sl_entries) == 0:
+			return
+		self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
 
 	def on_submit(self):
 		self.validate_pos_paid_amount()
@@ -418,6 +638,125 @@ class SalesInvoice(SellingController):
 			self.apply_loyalty_points()
 
 		self.process_common_party_accounting()
+		self.handle_used_from_show_qty()
+	
+	def handle_used_from_show_qty(self):
+		items_for_each_supplier = {}
+		for item in self.items:
+			if cint(item.custom_is_from_show_warehouse) == 0:
+				continue
+
+			default_supplier = frappe.db.get_value("Item Default", {"parenttype": "Item", "parent": item.item_code, "company": self.company}, "default_supplier")
+			if not default_supplier:
+				continue
+			exists = frappe.db.exists("Item Supplier", {"supplier": default_supplier, "custom_warehouse_company": self.company, "parenttype": "Item", "parent": item.item_code})
+			if not exists:
+				continue
+			item_supplier = frappe.get_doc("Item Supplier", exists)
+			if flt(item_supplier.custom_quantity_supplied_for_shows) == 0 or not item_supplier.custom_supplier_warehouse:
+				continue
+			data = items_for_each_supplier.get(item_supplier.supplier, {})
+			items = data.get("items", [])
+			items.append(item.as_dict())
+			items_for_each_supplier.update({
+				f"{item_supplier.supplier}": {
+					"items": items,
+					"item_supplier": {
+						"warehouse": item_supplier.custom_supplier_warehouse,
+						"qty": flt(item_supplier.custom_quantity_supplied_for_shows),
+					},
+				},
+			})
+		if not items_for_each_supplier:
+			return
+		for k, v in items_for_each_supplier.items():
+			po_items = v.get("items")
+			item_supplier = v.get("item_supplier")
+			warehouse = item_supplier.get("warehouse")
+			qty = item_supplier.get("qty")
+			
+			if not warehouse or not qty:
+				continue
+
+			po = frappe.new_doc("Purchase Order")
+			po.supplier = k
+			po.supplier = self.posting_date
+			schedule_date = add_days(self.posting_date, 1)
+			po.transaction_date = self.posting_date
+			po.schedule_date = schedule_date
+			po.company = self.company
+			po.currency = self.currency
+			po.set_warehouse = warehouse
+			for i in po_items:
+				del i["parenttype"]
+				del i["parent"]
+				del i["name"]
+				del i["idx"]
+				if flt(i.qty) > qty:
+					i.update({
+						"qty": flt(i.qty) - qty
+					})
+				i.update({
+					"schedule_date": schedule_date,
+				})
+				po.append("items", i)
+			po.save(ignore_permissions=True)
+			
+
+
+
+
+	def handle_dropshipping_for_items(self):
+		# Create Sales Order for Drop-Ship Items only
+		so = frappe.new_doc("Sales Order")
+		so.customer = self.customer
+		so.company = self.company
+		so.currency = self.currency
+		so.selling_price_list = self.selling_price_list
+		so.conversion_rate = self.conversion_rate
+		so.transaction_date = self.posting_date
+		so.delivery_date = self.posting_date
+
+		idx_mapped = []
+		for i, item in enumerate(self.items):
+			default_supplier = None
+			if cint(item.delivered_by_supplier) == 1:
+				default_supplier = frappe.db.get_value("Item Default", {"parenttype": "Item", "parent": item.item_code, "company": self.company}, "default_supplier")
+				if not default_supplier or default_supplier is None:
+					frappe.throw(_("Item at Row #{} is delivered by supplier set default supplier for item {}").format(item.idx, get_link_to_form("Item", item.item_code)))
+			so_item = {}
+			so_item.update(item.as_dict())
+			so_item.update({
+				"parenttype": "Sales Order",
+				"parent": so.name,
+				"supplier": default_supplier,
+				"delivery_date": self.posting_date,
+			})
+			so.append("items", so_item)
+			idx_mapped.append([item.name, i])
+
+		for tax in self.taxes:
+			so_tax = {}
+			so_tax.update(tax.as_dict())
+			so_tax.update({
+				"parenttype": "Sales Order",
+				"parent": so.name,
+			})
+			so.append("taxes", so_tax)
+		if len(so.items) == 0:
+			return
+		so.save(ignore_permissions=True)
+
+		for ii, si in enumerate(so.items):
+			self.items[ii].set("sales_order", so.name)
+			self.items[ii].set("so_detail", si.name)
+			if not self.items[ii].delivered_by_supplier:
+				si.set("supplier", None)
+			si.set("delivered_by_supplier", self.items[ii].delivered_by_supplier)
+		so.save(ignore_permissions=True)
+		so.submit()
+
+
 	def validate_standalone_serial_nos_customer(self):
 		if not self.is_return or self.return_against:
 			return
@@ -601,7 +940,7 @@ class SalesInvoice(SellingController):
 				"second_join_field": "so_detail",
 				"overflow_type": "delivery",
 				"extra_cond": """ and exists(select name from `tabSales Invoice`
-				where name=`tabSales Invoice Item`.parent and update_stock = 1)""",
+				where name=`tabSales Invoice Item`.parent and `tabSales Invoice Item`.delivered_by_supplier=0 and update_stock = 1)""",
 			}
 		)
 
@@ -619,7 +958,7 @@ class SalesInvoice(SellingController):
 				"second_source_dt": "Delivery Note Item",
 				"second_source_field": "-1 * qty",
 				"second_join_field": "so_detail",
-				"extra_cond": """ and exists (select name from `tabSales Invoice` where name=`tabSales Invoice Item`.parent and update_stock=1 and is_return=1)""",
+				"extra_cond": """ and exists (select name from `tabSales Invoice` where name=`tabSales Invoice Item`.parent and `tabSales Invoice Item`.delivered_by_supplier=0 and update_stock=1 and is_return=1)""",
 			}
 		)
 
@@ -1076,6 +1415,8 @@ class SalesInvoice(SellingController):
 		super().validate_warehouse()
 
 		for d in self.get_item_list():
+			if d.delivered_by_supplier:
+				continue
 			if (
 				not d.warehouse
 				and d.item_code

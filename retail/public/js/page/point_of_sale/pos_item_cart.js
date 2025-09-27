@@ -600,11 +600,28 @@ erpnext.PointOfSale.ItemCart = class {
 	render_cart_item(item_data, $item_to_update) {
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
-
+		const rows = (this.events.get_frm().doc.custom_pos_drop_ship_item_details || []).filter(r => r.item_code === item_data.item_code);
+		let indicators = ``;
+		if(Array.isArray(rows) && rows.length > 0){
+			const row = rows[0];
+			indicators = `
+				<div class="indicator-pill no-indicator-dot whitespace-nowrap blue" title="${__("Drop Ship")}">
+					${row.drop_ship_qty}
+				</div>
+				<div class="indicator-pill no-indicator-dot whitespace-nowrap orange" title="${__("From show")}">
+					${row.show_qty}
+				</div>
+				<div class="indicator-pill no-indicator-dot whitespace-nowrap green" title="${__("From store")}">
+					${row.store_qty}
+				</div>
+			`;
+		}
 		if (!$item_to_update.length) {
 			this.$cart_items_wrapper.append(
 				`<div class="cart-item-wrapper" data-row-name="${escape(item_data.name)}"></div>
-				<div class="seperator"></div>`
+				<div class="seperator">
+					${indicators}
+				</div>`
 			);
 			$item_to_update = this.get_cart_item(item_data);
 		}
