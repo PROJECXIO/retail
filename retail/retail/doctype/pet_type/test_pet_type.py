@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPetSpecies(FrappeTestCase):
+class TestPetType(FrappeTestCase):
 	pass

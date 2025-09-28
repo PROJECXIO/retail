@@ -1,19 +1,19 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:species",
- "creation": "2025-09-28 15:06:53.160978",
+ "autoname": "field:type",
+ "creation": "2025-09-28 15:42:01.502701",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "species"
+  "type"
  ],
  "fields": [
   {
-   "fieldname": "species",
+   "fieldname": "type",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Species",
+   "label": "Type",
    "reqd": 1,
    "unique": 1
   }
@@ -21,10 +21,10 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-28 15:12:17.046326",
+ "modified": "2025-09-28 15:42:20.580362",
  "modified_by": "Administrator",
  "module": "Retail",
- "name": "Pet Species",
+ "name": "Pet Type",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
