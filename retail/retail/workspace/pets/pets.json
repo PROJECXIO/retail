@@ -1,0 +1,143 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"Y5CAGRHxeY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Pets</span>\",\"col\":12}},{\"id\":\"F8M-i1WUgC\",\"type\":\"card\",\"data\":{\"card_name\":\"Pets Specifications\",\"col\":4}},{\"id\":\"xVD2ozmkUa\",\"type\":\"card\",\"data\":{\"card_name\":\"Pet Master Data\",\"col\":4}},{\"id\":\"H_o-nF0_UC\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointments\",\"col\":4}}]",
+ "creation": "2025-09-28 16:05:27.332423",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "heart",
+ "idx": 0,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Pets",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pets Specifications",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Type",
+   "link_count": 0,
+   "link_to": "Pet Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Breed",
+   "link_count": 0,
+   "link_to": "Pet Breed",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Type",
+   "link_count": 0,
+   "link_to": "Pet Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Master Data",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet",
+   "link_count": 0,
+   "link_to": "Pet",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Services",
+   "link_count": 0,
+   "link_to": "Product Bundle",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointments",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment",
+   "link_count": 0,
+   "link_to": "Appointment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Settings",
+   "link_count": 0,
+   "link_to": "Appointment Booking Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-09-28 16:11:08.315927",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Pets",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Pet Manager"
+  },
+  {
+   "role": "Pet User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Sales Master Manager"
+  },
+  {
+   "role": "Sales User"
+  }
+ ],
+ "sequence_id": 2.0,
+ "shortcuts": [],
+ "title": "Pets"
+}
