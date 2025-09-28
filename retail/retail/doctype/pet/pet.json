@@ -15,6 +15,9 @@
   "pet_size",
   "sex",
   "date_of_birth",
+  "pet_vaccinations_log_section",
+  "pet_vaccinations",
+  "last_vaccine_exp_date",
   "owner_details_section",
   "customer",
   "column_break_oipx",
@@ -108,13 +111,30 @@
    "label": "Pet Type",
    "options": "Pet Type",
    "reqd": 1
+  },
+  {
+   "fieldname": "pet_vaccinations_log_section",
+   "fieldtype": "Section Break",
+   "label": "Pet Vaccinations Log"
+  },
+  {
+   "fieldname": "pet_vaccinations",
+   "fieldtype": "Table",
+   "label": "Pet Vaccinations",
+   "options": "Pet Vaccine"
+  },
+  {
+   "fieldname": "last_vaccine_exp_date",
+   "fieldtype": "Date",
+   "label": "Last Vaccine Expiration Date",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "image_field": "pet_image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-28 15:51:36.185300",
+ "modified": "2025-09-28 17:33:04.840468",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet",
