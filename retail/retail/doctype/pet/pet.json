@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-28 14:59:32.541952",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pet_details_section",
+  "pet_name",
+  "pet_image",
+  "pet_details",
+  "column_break_lvxw",
+  "pet_species",
+  "pet_breed",
+  "pet_size",
+  "sex",
+  "date_of_birth",
+  "owner_details_section",
+  "customer",
+  "column_break_oipx",
+  "customer_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "pet_details_section",
+   "fieldtype": "Section Break",
+   "label": "Pet Details"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "column_break_lvxw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pet_image",
+   "fieldtype": "Attach Image",
+   "label": "Pet Image"
+  },
+  {
+   "fieldname": "pet_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pet Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pet_species",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Pet Species",
+   "options": "Pet Species",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pet_breed",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Pet Breed",
+   "options": "Pet Breed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sex",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Sex",
+   "options": "\nMale\nFemale"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
+  },
+  {
+   "fieldname": "pet_details",
+   "fieldtype": "Small Text",
+   "label": "Pet Details"
+  },
+  {
+   "fieldname": "column_break_oipx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pet_size",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Pet Size",
+   "options": "Pet Size",
+   "reqd": 1
+  },
+  {
+   "fieldname": "owner_details_section",
+   "fieldtype": "Section Break",
+   "label": "Owner Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "image_field": "pet_image",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-28 15:17:37.737648",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Pet",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "search_fields": "pet_name, customer_name, customer, pet_species, pet_breed",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "pet_name",
+ "track_changes": 1
+}
