@@ -92,7 +92,7 @@ doctype_list_js = {
 # Installation
 # ------------
 
-# before_install = "retail.install.before_install"
+before_install = "retail.install.before_install"
 # after_install = "retail.install.after_install"
 
 # Uninstallation
