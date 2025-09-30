@@ -52,6 +52,7 @@ doctype_js = {
     "POS Closing Entry" : "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
     "Item" : "public/js/doctype/item/item.js",
     "Appointment" : "public/js/doctype/appointment/appointment.js",
+    "Customer" : "public/js/doctype/customer/customer.js",
 }
 doctype_list_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
