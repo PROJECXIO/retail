@@ -41,9 +41,6 @@ class Appointment(BaseAppointment):
 		if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
 			frappe.throw(_("Select Google Calendar to which event should be synced."))
 
-		if not self.custom_sync_with_google_calendar:
-			self.add_video_conferencing = 0
-
 	def before_save(self):
 		self.set_party_email()
 
