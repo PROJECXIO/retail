@@ -51,12 +51,15 @@ doctype_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice.js",
     "POS Closing Entry" : "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
     "Item" : "public/js/doctype/item/item.js",
+    "Appointment" : "public/js/doctype/appointment/appointment.js",
 }
 doctype_list_js = {
     "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
-# doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+doctype_calendar_js = {
+    "Appointment" : "public/js/doctype/appointment/appointment_calendar.js",
+}
 
 # Svg Icons
 # ------------------
@@ -143,6 +146,7 @@ override_doctype_class = {
 	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice",
 	"POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
 	"Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
+	"Appointment": "retail.overrides.doctype.appointment.Appointment",
 }
 
 # Document Events
