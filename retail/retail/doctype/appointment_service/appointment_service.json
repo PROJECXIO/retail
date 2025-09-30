@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-30 11:48:10.260799",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "pet",
+  "service",
+  "working_hours"
+ ],
+ "fields": [
+  {
+   "fieldname": "pet",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Pet",
+   "options": "Pet",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service",
+   "options": "Pet Service",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "service.working_hours",
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-30 11:54:30.783550",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Appointment Service",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
