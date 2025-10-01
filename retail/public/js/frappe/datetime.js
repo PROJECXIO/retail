@@ -1,6 +1,22 @@
 import "../../../../../frappe/frappe/public/js/frappe/form/controls/datetime";
 
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDatetime {
+    set_date_options() {
+		super.set_date_options();
+		this.today_text = __("Now");
+		let sysdefaults = frappe.boot.sysdefaults;
+		this.date_format = frappe.defaultDatetimeFormat;
+		let time_format =
+			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
+
+		$.extend(this.datepicker_options, {
+			timepicker: true,
+			timeFormat: time_format
+                .toLowerCase()
+                .replace("mm", "ii")
+                .replace("a", "AA"),
+		});
+	}
     set_datepicker() {
 		super.set_datepicker();
 		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
@@ -68,7 +84,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		let $btnAM = $wrapper.find(".am-pm .btn-am");
 		let $btnPM = $wrapper.find(".am-pm .btn-pm");
 		// helper to fill inputs
-		let updateInputsFromDate = (d) => {
+		let updateInputsFromDate = (d, meridian) => {
 			if (!d) return;
 			let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
 			if (is12h) {
@@ -90,9 +106,8 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!initialDate || isNaN(initialDate.getTime())) {
 			initialDate = new Date();
 		}
-		console.log(initialDate)
-		updateInputsFromDate(initialDate);
 		let meridian = "AM";
+		updateInputsFromDate(initialDate, meridian);
 
 		// AM/PM toggle
 		if (is12h) {
