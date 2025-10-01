@@ -28,7 +28,9 @@ app_license = "mit"
 app_include_css = [
     "retail.bundle.css",
 ]
-# app_include_js = "/assets/retail/js/retail.js"
+app_include_js = [
+    "retail.bundle.js",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/retail/css/retail.css"
