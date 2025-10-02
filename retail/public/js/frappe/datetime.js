@@ -1,247 +1,212 @@
 import "../../../../../frappe/frappe/public/js/frappe/form/controls/datetime";
 
-frappe.ui.form.ControlDatetime = class ControlDatetime extends (
-	frappe.ui.form.ControlDatetime
-) {
-	set_date_options() {
-		super.set_date_options();
-		this.today_text = __("Now");
-		let sysdefaults = frappe.boot.sysdefaults;
-		this.date_format = frappe.defaultDatetimeFormat;
-		let time_format =
-			sysdefaults && sysdefaults.time_format
-				? sysdefaults.time_format
-				: "HH:mm:ss";
+frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDatetime {
+    set_date_options() {
+        super.set_date_options();
+        this.today_text = __("Now");
 
-		$.extend(this.datepicker_options, {
-			timepicker: true,
-			autoClose: false,
-			timeFormat: time_format
-				.toLowerCase()
-				.replace("mm", "ii")
-				.replace("a", "AA"),
-		});
-	}
-	set_datepicker() {
-		super.set_datepicker();
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
-		}
-		$(".datepicker--buttons").css("display", "none");
-		$(".datepicker--time-sliders").css("display", "none");
-		$(".datepicker--time-current").css("display", "none");
-		this.injectTimeSelects(this.datepicker);
-	}
-	injectTimeSelects(dp) {
-		let $container = $(dp.$datepicker).find(".datepicker--time");
+        const sysdefaults = frappe.boot.sysdefaults;
+        const time_format = (sysdefaults && sysdefaults.time_format) || "HH:mm:ss";
 
-		// unique wrapper per field
-		let wrapperClass = `custom-datetime-selects-${this.df.fieldname}`;
-		if ($container.find(`.${wrapperClass}`).length) return;
+        $.extend(this.datepicker_options, {
+            timepicker: true,
+            autoClose: false,
+            timeFormat: time_format.toLowerCase().replace("mm", "ii").replace("a", "AA"),
+            onShow: (dp) => {
+                const $dp = $(dp.$datepicker);
+                $dp.find(".datepicker--button:visible").text(__("Now"));
 
-		// detect format
-		let sysdefaults = frappe.boot.sysdefaults;
-		let time_format =
-			sysdefaults && sysdefaults.time_format
-				? sysdefaults.time_format
-				: "HH:mm:ss";
+                if (!$dp.find(`.custom-datetime-selects-${this.df.fieldname}`).length) {
+                    $dp.find(".datepicker--buttons, .datepicker--time-sliders, .datepicker--time-current").hide();
+                    this.injectTimeSelects(dp);
+                }
+                setTimeout(() => {
+                    this.scrollAllToActive(dp);
+                }, 0);
 
-		let is12h = /a|A/.test(time_format);
-		let hasSeconds = /s{1,2}/.test(time_format);
+                this.update_datepicker_position();
+            },
+        });
+    }
 
-		// AM/PM buttons
-		let ampmHtml = is12h
-			? `
-				<div class="am-pm" style="display:flex; flex-direction:column; margin-left:8px; gap:5px;">
-					<button type="button" class="btn-am btn btn-default btn-sm">${__(
-							"AM"
-						)}</button>
-					<button type="button" class="btn-pm btn btn-default btn-sm">${__(
-							"PM"
-						)}</button>
-				</div>`
-			: "";
+    // helper: smooth scroll to active
+    scrollToActive($list) {
+        const $active = $list.find(".time-option.btn-primary");
+        if ($active.length) {
+            $list.stop().animate({
+                scrollTop:
+                    $active.position().top +
+                    $list.scrollTop() -
+                    $list.height() / 2 +
+                    $active.outerHeight() / 2,
+            }, 200);
+        }
+    }
 
-		// wrapper
-		let $wrapper = $(`
-    <div class="${wrapperClass}" style="margin:10px auto; text-align:center;">
-        <div class="time-boxes" style="display:flex; align-items:center; justify-content:center; gap:6px;">
-            <div class="time-scroll hour-scroll" style="max-height:120px; overflow-y:auto;"></div>
-            <span style="font-size:15px; font-weight:bold;">:</span>
-            <div class="time-scroll minute-scroll" style="max-height:120px; overflow-y:auto;"></div>
-            ${hasSeconds
-				? '<span style="font-size:15px; font-weight:bold;">:</span><div class="time-scroll second-scroll" style="max-height:120px; overflow-y:auto;"></div>'
-				: ""
-			}
-            ${ampmHtml}
-        </div>
-        <div class="action-buttons" style="margin-top:12px; display:flex; justify-content:center; gap:5px;">
-            <button type="button" class="btn-now btn btn-default btn-sm">${frappe.utils.icon(
-				"select",
-				"sm"
-			)} ${__("Now")}</button>
-        </div>
-    </div>`);
+    scrollAllToActive(dp) {
+        const $dp = $(dp.$datepicker);
+        this.scrollToActive($dp.find(".hour-scroll"));
+        this.scrollToActive($dp.find(".minute-scroll"));
+        this.scrollToActive($dp.find(".second-scroll"));
+    }
 
-		$container.append($wrapper);
+    set_datepicker() {
+        super.set_datepicker();
+        const $dp = $(this.datepicker.$datepicker);
 
-		// helpers
-		function buildScroll($el, max, min = 0) {
-			let html = "";
-			for (let i = min; i <= max; i++) {
-				let val = i.toString().padStart(2, "0");
-				html += `<div class="time-option btn" data-val="${i}" style="padding:4px; cursor:pointer;">${val}</div>`;
-			}
-			$el.html(html);
-		}
-		function scrollToActive($list) {
-			let $active = $list.find(".time-option.btn-primary");
-			if ($active.length) {
-				$list.scrollTop(
-					$active.position().top +
-					$list.scrollTop() -
-					$list.height() / 2 +
-					$active.outerHeight() / 2
-				);
-			}
-		}
+        if (this.datepicker.opts.timeFormat.indexOf("s") === -1) {
+            const $tp = this.datepicker.timepicker;
+            $tp.$seconds.parent().css("display", "none");
+            $tp.$secondsText.css("display", "none");
+            $tp.$secondsText.prev().css("display", "none");
+        }
 
-		buildScroll($wrapper.find(".hour-scroll"), is12h ? 12 : 23, is12h ? 1 : 0);
-		buildScroll($wrapper.find(".minute-scroll"), 59);
-		if (hasSeconds) buildScroll($wrapper.find(".second-scroll"), 59);
+        $dp.find(".datepicker--buttons, .datepicker--time-sliders, .datepicker--time-current").hide();
+        this.injectTimeSelects(this.datepicker);
+    }
 
-		let $btnAM = $wrapper.find(".am-pm .btn-am");
-		let $btnPM = $wrapper.find(".am-pm .btn-pm");
-		let $btnNow = $wrapper.find(".action-buttons .btn-now");
+    injectTimeSelects(dp) {
+        const $dp = $(dp.$datepicker);
+        const $container = $dp.find(".datepicker--time");
 
-		// per-instance meridian
-		this.meridian = this.meridian || "AM";
+        const sysdefaults = frappe.boot.sysdefaults;
+        const time_format = (sysdefaults && sysdefaults.time_format) || "HH:mm:ss";
+        const is12h = /a|A/.test(time_format);
+        const hasSeconds = /s{1,2}/.test(time_format);
 
-		const updateFromInputs = () => {
-			let h = parseInt($wrapper.find(".hour-scroll .btn-primary").data("val")) || 0;
-			let m =
-				parseInt($wrapper.find(".minute-scroll .btn-primary").data("val")) || 0;
-			let s = hasSeconds
-				? parseInt($wrapper.find(".second-scroll .btn-primary").data("val")) || 0
-				: 0;
+        const wrapperClass = `custom-datetime-selects-${this.df.fieldname}`;
+        if ($container.find(`.${wrapperClass}`).length) return;
 
-			if (is12h) {
-				if (this.meridian === "PM" && h < 12) h += 12;
-				if (this.meridian === "AM" && h === 12) h = 0;
-			}
+        const ampmHtml = is12h
+            ? `<div class="am-pm" style="display:flex; flex-direction:column; margin-left:8px; gap:5px;">
+                   <button type="button" class="btn-am btn btn-default btn-sm">${__("AM")}</button>
+                   <button type="button" class="btn-pm btn btn-default btn-sm">${__("PM")}</button>
+               </div>`
+            : "";
 
-			let date = dp.selectedDates[0] || new Date();
-			date.setHours(h, m, s);
+        const $wrapper = $(`
+            <div class="${wrapperClass}" style="margin:10px auto; text-align:center;">
+                <div class="time-boxes" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <div class="time-scroll hour-scroll"   style="max-height:120px; overflow-y:auto;"></div>
+                    <span style="font-size:15px; font-weight:bold;">:</span>
+                    <div class="time-scroll minute-scroll" style="max-height:120px; overflow-y:auto;"></div>
+                    ${hasSeconds ? '<span style="font-size:15px; font-weight:bold;">:</span><div class="time-scroll second-scroll" style="max-height:120px; overflow-y:auto;"></div>' : ""}
+                    ${ampmHtml}
+                </div>
+                <div class="action-buttons" style="margin-top:12px; display:flex; justify-content:center; gap:5px;">
+                    <button type="button" class="btn-now btn btn-default btn-sm">${frappe.utils.icon("select","sm")} ${__("Now")}</button>
+                </div>
+            </div>
+        `);
 
-			dp.selectDate(date);
-		};
+        $container.append($wrapper);
 
-		// option click → update instantly
-		$wrapper.find(".time-option").on("click", (e) => {
-			e.stopPropagation();
-			let $opt = $(e.currentTarget);
-			let $list = $opt.closest(".time-scroll");
-			$list.find(".time-option").removeClass("btn-primary");
-			$opt.addClass("btn-primary");
-			updateFromInputs();
-		});
+        // build scroll lists
+        const buildScroll = ($el, max, min = 0) => {
+            let html = "";
+            for (let i = min; i <= max; i++) {
+                const val = i.toString().padStart(2, "0");
+                html += `<div class="time-option btn" data-val="${i}" style="padding:4px; cursor:pointer;">${val}</div>`;
+            }
+            $el.html(html);
+        };
 
-		// AM/PM toggle → update instantly
-		if (is12h) {
-			$btnAM.on("click", () => {
-				this.meridian = "AM";
-				$btnAM.addClass("btn-primary").removeClass("btn-default");
-				$btnPM.addClass("btn-default").removeClass("btn-primary");
-				updateFromInputs();
-			});
-			$btnPM.on("click", () => {
-				this.meridian = "PM";
-				$btnPM.addClass("btn-primary").removeClass("btn-default");
-				$btnAM.addClass("btn-default").removeClass("btn-primary");
-				updateFromInputs();
-			});
-		}
+        buildScroll($wrapper.find(".hour-scroll"), is12h ? 12 : 23, is12h ? 1 : 0);
+        buildScroll($wrapper.find(".minute-scroll"), 59);
+        if (hasSeconds) buildScroll($wrapper.find(".second-scroll"), 59);
 
-		// NOW button
-		$btnNow.on("click", () => {
-			let now = new Date();
-			let h = now.getHours();
-			let m = now.getMinutes();
-			let s = now.getSeconds();
+        const $btnAM  = $wrapper.find(".am-pm .btn-am");
+        const $btnPM  = $wrapper.find(".am-pm .btn-pm");
+        const $btnNow = $wrapper.find(".action-buttons .btn-now");
 
-			if (is12h) {
-				this.meridian = h >= 12 ? "PM" : "AM";
-				h = h % 12 || 12;
-			}
+        this.meridian = this.meridian || "AM";
 
-			$wrapper
-				.find(".hour-scroll .time-option")
-				.removeClass("btn-primary")
-				.filter(`[data-val='${h}']`)
-				.addClass("btn-primary");
-			$wrapper
-				.find(".minute-scroll .time-option")
-				.removeClass("btn-primary")
-				.filter(`[data-val='${m}']`)
-				.addClass("btn-primary");
-			if (hasSeconds) {
-				$wrapper
-					.find(".second-scroll .time-option")
-					.removeClass("btn-primary")
-					.filter(`[data-val='${s}']`)
-					.addClass("btn-primary");
-			}
+        const updateFromUI = () => {
+            let h = parseInt($wrapper.find(".hour-scroll   .btn-primary").data("val")) || 0;
+            let m = parseInt($wrapper.find(".minute-scroll .btn-primary").data("val")) || 0;
+            let s = hasSeconds ? (parseInt($wrapper.find(".second-scroll .btn-primary").data("val")) || 0) : 0;
 
-			if (is12h) {
-				if (this.meridian === "PM") $btnPM.trigger("click");
-				else $btnAM.trigger("click");
-			}
+            if (is12h) {
+                if (this.meridian === "PM" && h < 12) h += 12;
+                if (this.meridian === "AM" && h === 12) h = 0;
+            }
 
-			dp.selectDate(now); // update immediately
-			dp.hide(); // close after "Now"
-		});
+            const date = dp.selectedDates[0] || new Date();
+            date.setHours(h, m, s);
+            dp.selectDate(date);
+        };
 
-		// Initialize with current value
-		let initDate =
-			dp.selectedDates[0] ||
-			(this.value ? frappe.datetime.user_to_obj(this.value) : null) ||
-			new Date();
-		let h = initDate.getHours(),
-			m = initDate.getMinutes(),
-			s = initDate.getSeconds();
+        // click on numbers → update immediately
+        $wrapper.on("click", ".time-option", (e) => {
+            e.stopPropagation();
+            const $opt  = $(e.currentTarget);
+            const $list = $opt.closest(".time-scroll");
+            $list.find(".time-option").removeClass("btn-primary");
+            $opt.addClass("btn-primary");
+            updateFromUI();
+            this.scrollToActive($list);
+        });
 
-		if (is12h) {
-			this.meridian = h >= 12 ? "PM" : "AM";
-			h = h % 12 || 12;
-		}
+        // AM/PM
+        if (is12h) {
+            $btnAM.on("click", (e) => {
+                e.stopPropagation();
+                this.meridian = "AM";
+                $btnAM.addClass("btn-primary").removeClass("btn-default");
+                $btnPM.addClass("btn-default").removeClass("btn-primary");
+                updateFromUI();
+            });
+            $btnPM.on("click", (e) => {
+                e.stopPropagation();
+                this.meridian = "PM";
+                $btnPM.addClass("btn-primary").removeClass("btn-default");
+                $btnAM.addClass("btn-default").removeClass("btn-primary");
+                updateFromUI();
+            });
+        }
 
-		$wrapper
-			.find(".hour-scroll .time-option")
-			.filter(`[data-val='${h}']`)
-			.addClass("btn-primary");
-		$wrapper
-			.find(".minute-scroll .time-option")
-			.filter(`[data-val='${m}']`)
-			.addClass("btn-primary");
-		if (hasSeconds) {
-			$wrapper
-				.find(".second-scroll .time-option")
-				.filter(`[data-val='${s}']`)
-				.addClass("btn-primary");
-		}
-		if (is12h) {
-			if (this.meridian === "PM")
-				$btnPM.addClass("btn-primary").removeClass("btn-default");
-			else $btnAM.addClass("btn-primary").removeClass("btn-default");
-		}
+        // NOW
+        $btnNow.on("click", (e) => {
+            e.stopPropagation();
+            const now = new Date();
+            let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
 
-		// scroll lists to active value
-		scrollToActive($wrapper.find(".hour-scroll"));
-		scrollToActive($wrapper.find(".minute-scroll"));
-		if (hasSeconds) scrollToActive($wrapper.find(".second-scroll"));
-	}
+            if (is12h) {
+                this.meridian = h >= 12 ? "PM" : "AM";
+                h = h % 12 || 12;
+            }
+
+            $wrapper.find(".hour-scroll   .time-option").removeClass("btn-primary").filter(`[data-val='${h}']`).addClass("btn-primary");
+            $wrapper.find(".minute-scroll .time-option").removeClass("btn-primary").filter(`[data-val='${m}']`).addClass("btn-primary");
+            if (hasSeconds) $wrapper.find(".second-scroll .time-option").removeClass("btn-primary").filter(`[data-val='${s}']`).addClass("btn-primary");
+
+            if (is12h) {
+                (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
+            }
+
+            dp.selectDate(now);
+            this.scrollAllToActive(dp);
+        });
+
+        // init
+        const initDate = dp.selectedDates[0]
+            || (this.value ? frappe.datetime.user_to_obj(this.value) : null)
+            || new Date();
+
+        let ih = initDate.getHours(), im = initDate.getMinutes(), is = initDate.getSeconds();
+        if (is12h) {
+            this.meridian = ih >= 12 ? "PM" : "AM";
+            ih = ih % 12 || 12;
+        }
+
+        $wrapper.find(".hour-scroll   .time-option").filter(`[data-val='${ih}']`).addClass("btn-primary");
+        $wrapper.find(".minute-scroll .time-option").filter(`[data-val='${im}']`).addClass("btn-primary");
+        if (hasSeconds) $wrapper.find(".second-scroll .time-option").filter(`[data-val='${is}']`).addClass("btn-primary");
+
+        if (is12h) {
+            (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
+        }
+
+        this.scrollAllToActive(dp);
+    }
 };
