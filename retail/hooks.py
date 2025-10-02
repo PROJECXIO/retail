@@ -150,6 +150,7 @@ override_doctype_class = {
 	"POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
 	"Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
 	"Appointment": "retail.overrides.doctype.appointment.Appointment",
+	"Appointment Booking Settings": "retail.overrides.doctype.appointment_booking_settings.AppointmentBookingSettings",
 }
 
 # Document Events

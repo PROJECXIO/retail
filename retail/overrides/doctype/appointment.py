@@ -17,11 +17,17 @@ from frappe.utils import (
 	get_datetime,
 	add_to_date,
 	flt,
+	getdate,
+	cint,
+	time_diff_in_seconds,
 )
 
 from erpnext.crm.doctype.appointment.appointment import Appointment as BaseAppointment
 
 class Appointment(BaseAppointment):
+	def __setup__(self):
+		self.flags.update_related_appointments = True
+
 	def create_calendar_event(self):
 		pass
 
@@ -47,6 +53,48 @@ class Appointment(BaseAppointment):
 
 	def on_update(self):
 		self.sync_communication()
+		if self.flags.update_related_appointments:
+			self.update_all_related_appointments()
+
+	def update_all_related_appointments(self):
+		if cint(frappe.db.get_single_value("Appointment Booking Settings", "custom_reschedule_all_linked_appointments")) == 0:
+			return
+		if self.status != 'Closed':
+			return
+		# check if ends time is updated and status is closed
+		prev_doc = self.get_doc_before_save()
+		if not prev_doc:
+			return
+		time_diff = time_diff_in_seconds(self.custom_ends_on, prev_doc.custom_ends_on)
+		if (time_diff == 0) or prev_doc.status == 'Closed':
+			return
+		
+		Appointment = frappe.qb.DocType("Appointment")
+		query = (
+			frappe.qb.from_(Appointment)
+			.select(Appointment.name)
+			.where(
+				(Appointment.custom_employee == self.custom_employee)
+				& (Appointment.name != self.name)
+				& (Appointment.status == 'Open')
+				& (Appointment.scheduled_time >= self.custom_ends_on)
+				& (functions.Date(Appointment.scheduled_time) == getdate(self.custom_ends_on))
+			)
+		)
+		appointments = query.run(as_dict=True)
+		if len(appointments) == 0:
+			return
+		for appointment in appointments:
+			appointment = frappe.get_doc("Appointment", appointment)
+			
+			appointment.flags.update_related_appointments = False
+			appointment.scheduled_time = add_to_date(appointment.scheduled_time, seconds=time_diff)
+			appointment.custom_ends_on = add_to_date(appointment.custom_ends_on, seconds=time_diff)
+			appointment.flags.ignore_permissions = True
+			appointment.flags.ignore_mandatory = True
+			appointment.save()
+
+
 
 	def on_trash(self):
 		communications = frappe.get_all(
