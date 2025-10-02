@@ -1,0 +1,27 @@
+.time-scroll {
+  max-height: 120px; /* visible items */
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px;
+  width: 50px;
+  font-weight: bold;
+  background: #fff;
+}
+
+.time-option {
+  padding: 6px;
+  cursor: pointer;
+  text-align: center;
+  min-width: 34px;
+  width: 34px;
+}
+
+.time-option:hover,
+.time-option.active {
+  background-color: var(--btn-primary);
+  color: var(--neutral);
+  white-space: nowrap;
+  --icon-stroke: currentColor;
+  --icon-fill-bg: var(--btn-primary);
+}

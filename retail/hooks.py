@@ -28,7 +28,9 @@ app_license = "mit"
 app_include_css = [
     "retail.bundle.css",
 ]
-# app_include_js = "/assets/retail/js/retail.js"
+app_include_js = [
+    "retail.bundle.js",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/retail/css/retail.css"
@@ -148,6 +150,7 @@ override_doctype_class = {
 	"POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
 	"Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
 	"Appointment": "retail.overrides.doctype.appointment.Appointment",
+	"Appointment Booking Settings": "retail.overrides.doctype.appointment_booking_settings.AppointmentBookingSettings",
 }
 
 # Document Events
