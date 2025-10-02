@@ -33,6 +33,7 @@ frappe.ui.form.ControlTime = class ControlTime extends (
                 let $dp = $(dp.$datepicker);
                 $dp.find(".datepicker--button:visible").text(__("Now"));
                 if (!$dp.find(`.custom-time-selects-${this.df.fieldname}`).length) {
+                    $dp.find(".datepicker--buttons").hide();
                     $dp.find(".datepicker--time-sliders").hide();
                     $dp.find(".datepicker--time-current").hide();
                     me.injectTimeSelects(dp);
@@ -82,6 +83,12 @@ frappe.ui.form.ControlTime = class ControlTime extends (
                 }
                 ${ampmHtml}
             </div>
+            <div class="action-buttons" style="margin-top:12px; display:flex; justify-content:center; gap:5px;">
+                <button type="button" class="btn-now btn btn-default btn-sm">${frappe.utils.icon(
+                    "select",
+                    "sm"
+                )} ${__("Now")}</button>
+            </div>
         </div>
         `);
 
@@ -115,6 +122,7 @@ frappe.ui.form.ControlTime = class ControlTime extends (
 
         let $btnAM = $wrapper.find(".am-pm .btn-am");
         let $btnPM = $wrapper.find(".am-pm .btn-pm");
+        let $btnNow = $wrapper.find(".action-buttons .btn-now");
 
         // 🔹 store meridian per field instance
         this.meridian = this.meridian || "AM";
@@ -166,6 +174,42 @@ frappe.ui.form.ControlTime = class ControlTime extends (
                 updateFromInputs();
             });
         }
+
+        // NOW button
+        $btnNow.on("click", (e) => {
+            e.stopPropagation();
+            let now = new Date();
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+
+            if (is12h) {
+                this.meridian = h >= 12 ? "PM" : "AM";
+                h = h % 12 || 12;
+            }
+
+            $wrapper.find(".hour-scroll .time-option")
+                .removeClass("btn-primary")
+                .filter(`[data-val='${h}']`).addClass("btn-primary");
+
+            $wrapper.find(".minute-scroll .time-option")
+                .removeClass("btn-primary")
+                .filter(`[data-val='${m}']`).addClass("btn-primary");
+
+            if (hasSeconds) {
+                $wrapper.find(".second-scroll .time-option")
+                    .removeClass("btn-primary")
+                    .filter(`[data-val='${s}']`).addClass("btn-primary");
+            }
+
+            if (is12h) {
+                if (this.meridian === "PM") $btnPM.trigger("click");
+                else $btnAM.trigger("click");
+            }
+
+            dp.selectDate(now);
+            dp.hide();
+        });
 
         // Initialize with current selected time
         if (dp.selectedDates[0]) {
