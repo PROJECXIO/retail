@@ -31,9 +31,10 @@ class Appointment(BaseAppointment):
 
 		# if start == end this scenario doesn't make sense i.e. it starts and ends at the same second!
 		hours_to_add = flt(frappe.db.get_single_value("Appointment Booking Settings", "custom_default_travel_hours"))
-		for row in self.custom_appointment_services:
-			hours_to_add += flt(row.working_hours)
-		self.custom_ends_on = add_to_date(self.scheduled_time, hours=hours_to_add)
+		if not self.custom_ends_on:
+			for row in self.custom_appointment_services:
+				hours_to_add += flt(row.working_hours)
+			self.custom_ends_on = add_to_date(self.scheduled_time, hours=hours_to_add)
 
 		if self.scheduled_time and self.custom_ends_on:
 			self.validate_from_to_dates("scheduled_time", "custom_ends_on")
