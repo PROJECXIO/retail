@@ -7,10 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "service",
+  "service_item",
   "column_break_nfmf",
   "working_hours",
-  "section_break_tugw",
-  "service_items"
+  "price"
  ],
  "fields": [
   {
@@ -35,21 +35,25 @@
    "reqd": 1
   },
   {
-   "fieldname": "section_break_tugw",
-   "fieldtype": "Section Break"
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "Price",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
-   "fieldname": "service_items",
-   "fieldtype": "Table",
-   "label": "Service Items",
-   "options": "Service Item",
+   "fieldname": "service_item",
+   "fieldtype": "Link",
+   "label": "Service Item",
+   "link_filters": "[[\"Product Bundle\",\"disabled\",\"=\",0]]",
+   "options": "Product Bundle",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 11:51:41.309960",
+ "modified": "2025-10-03 19:53:33.658366",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
