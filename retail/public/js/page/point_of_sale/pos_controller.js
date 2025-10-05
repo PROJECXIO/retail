@@ -339,7 +339,7 @@ erpnext.PointOfSale.Controller = class {
 		]);
 	}
 
-	close_pos() {
+	async close_pos() {
 		if (!this.$components_wrapper.is(":visible")) return;
 
 		let voucher = frappe.model.get_new_doc("POS Closing Entry");
@@ -350,7 +350,7 @@ erpnext.PointOfSale.Controller = class {
 		voucher.period_end_date = frappe.datetime.now_datetime();
 		voucher.posting_date = frappe.datetime.now_date();
 		voucher.posting_time = frappe.datetime.now_time();
-		frappe.set_route("Form", "POS Closing Entry", voucher.name);
+		await frappe.set_route("Form", "POS Closing Entry", voucher.name);
 	}
 
 	init_item_selector() {
