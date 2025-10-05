@@ -94,10 +94,30 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Pet Master Data",
-   "link_count": 3,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Item",
+   "link_count": 0,
+   "link_to": "Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Product Bundle",
+   "link_count": 0,
+   "link_to": "Product Bundle",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -130,7 +150,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-09-30 15:36:26.915699",
+ "modified": "2025-10-03 19:39:56.420379",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",

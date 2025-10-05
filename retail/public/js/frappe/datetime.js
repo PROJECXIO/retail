@@ -7,6 +7,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 
         const sysdefaults = frappe.boot.sysdefaults;
         const time_format = (sysdefaults && sysdefaults.time_format) || "HH:mm:ss";
+        const parseInput = (val) => (val ? frappe.datetime.user_to_obj(val) : null);
 
         $.extend(this.datepicker_options, {
             timepicker: true,
@@ -16,20 +17,23 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
                 const $dp = $(dp.$datepicker);
                 $dp.find(".datepicker--button:visible").text(__("Now"));
 
+                // if input has value but datepicker has no selection yet, seed it
+                if (!dp.selectedDates.length && this.value) {
+                    const dt = parseInput(this.value);
+                    if (dt) dp.selectDate(dt);
+                }
+
                 if (!$dp.find(`.custom-datetime-selects-${this.df.fieldname}`).length) {
                     $dp.find(".datepicker--buttons, .datepicker--time-sliders, .datepicker--time-current").hide();
                     this.injectTimeSelects(dp);
                 }
-                setTimeout(() => {
-                    this.scrollAllToActive(dp);
-                }, 0);
 
+                setTimeout(() => this.scrollAllToActive(dp), 0);
                 this.update_datepicker_position();
             },
         });
     }
 
-    // helper: smooth scroll to active
     scrollToActive($list) {
         const $active = $list.find(".time-option.btn-primary");
         if ($active.length) {
@@ -56,9 +60,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 
         if (this.datepicker.opts.timeFormat.indexOf("s") === -1) {
             const $tp = this.datepicker.timepicker;
-            $tp.$seconds.parent().css("display", "none");
-            $tp.$secondsText.css("display", "none");
-            $tp.$secondsText.prev().css("display", "none");
+            $tp.$seconds.parent().hide();
+            $tp.$secondsText.hide();
+            $tp.$secondsText.prev().hide();
         }
 
         $dp.find(".datepicker--buttons, .datepicker--time-sliders, .datepicker--time-current").hide();
@@ -87,7 +91,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
         const $wrapper = $(`
             <div class="${wrapperClass}" style="margin:10px auto; text-align:center;">
                 <div class="time-boxes" style="display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <div class="time-scroll hour-scroll"   style="max-height:120px; overflow-y:auto;"></div>
+                    <div class="time-scroll hour-scroll" style="max-height:120px; overflow-y:auto;"></div>
                     <span style="font-size:15px; font-weight:bold;">:</span>
                     <div class="time-scroll minute-scroll" style="max-height:120px; overflow-y:auto;"></div>
                     ${hasSeconds ? '<span style="font-size:15px; font-weight:bold;">:</span><div class="time-scroll second-scroll" style="max-height:120px; overflow-y:auto;"></div>' : ""}
@@ -101,7 +105,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 
         $container.append($wrapper);
 
-        // build scroll lists
         const buildScroll = ($el, max, min = 0) => {
             let html = "";
             for (let i = min; i <= max; i++) {
@@ -136,7 +139,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
             dp.selectDate(date);
         };
 
-        // click on numbers → update immediately
         $wrapper.on("click", ".time-option", (e) => {
             e.stopPropagation();
             const $opt  = $(e.currentTarget);
@@ -147,7 +149,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
             this.scrollToActive($list);
         });
 
-        // AM/PM
         if (is12h) {
             $btnAM.on("click", (e) => {
                 e.stopPropagation();
@@ -165,7 +166,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
             });
         }
 
-        // NOW
         $btnNow.on("click", (e) => {
             e.stopPropagation();
             const now = new Date();
@@ -188,25 +188,26 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
             this.scrollAllToActive(dp);
         });
 
-        // init
+        // initialize from existing value (not now)
         const initDate = dp.selectedDates[0]
-            || (this.value ? frappe.datetime.user_to_obj(this.value) : null)
-            || new Date();
+            || (this.value ? frappe.datetime.user_to_obj(this.value) : null);
 
-        let ih = initDate.getHours(), im = initDate.getMinutes(), is = initDate.getSeconds();
-        if (is12h) {
-            this.meridian = ih >= 12 ? "PM" : "AM";
-            ih = ih % 12 || 12;
+        if (initDate) {
+            let ih = initDate.getHours(), im = initDate.getMinutes(), is = initDate.getSeconds();
+            if (is12h) {
+                this.meridian = ih >= 12 ? "PM" : "AM";
+                ih = ih % 12 || 12;
+            }
+
+            $wrapper.find(".hour-scroll   .time-option").filter(`[data-val='${ih}']`).addClass("btn-primary");
+            $wrapper.find(".minute-scroll .time-option").filter(`[data-val='${im}']`).addClass("btn-primary");
+            if (hasSeconds) $wrapper.find(".second-scroll .time-option").filter(`[data-val='${is}']`).addClass("btn-primary");
+
+            if (is12h) {
+                (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
+            }
+
+            this.scrollAllToActive(dp);
         }
-
-        $wrapper.find(".hour-scroll   .time-option").filter(`[data-val='${ih}']`).addClass("btn-primary");
-        $wrapper.find(".minute-scroll .time-option").filter(`[data-val='${im}']`).addClass("btn-primary");
-        if (hasSeconds) $wrapper.find(".second-scroll .time-option").filter(`[data-val='${is}']`).addClass("btn-primary");
-
-        if (is12h) {
-            (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
-        }
-
-        this.scrollAllToActive(dp);
     }
 };

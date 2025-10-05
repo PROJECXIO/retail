@@ -210,6 +210,8 @@ def get_appointments(start, end, user=None, for_reminder=False, filters=None) ->
         .select(
             Appointment.name,
             Appointment.status,
+			functions.IfNull(Appointment.custom_vehicle, "unassigned").as_("resourceId"), # resourceId for calendar-view
+            Appointment.custom_vehicle.as_("vehicle"),
             Appointment.custom_subject.as_("subject"),
             Appointment.customer_details.as_("description"),
             Appointment.custom_color.as_("color"),
