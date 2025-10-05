@@ -5,15 +5,16 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
         const sysdefaults = frappe.boot.sysdefaults;
         const me = this;
         const time_format = (sysdefaults && sysdefaults.time_format) || "HH:mm:ss";
+        const parseInput = (val) => (val ? frappe.datetime.user_to_obj(val) : null);
+        this.time_format = time_format;
 
-        this.time_format = frappe.defaultTimeFormat;
         this.datepicker_options = {
             language: "en",
             timepicker: true,
             onlyTimepicker: true,
             autoClose: false,
             timeFormat: time_format.toLowerCase().replace("mm", "ii").replace("a", "AA"),
-            startDate: frappe.datetime.now_time(true),
+            // Don’t force “now” — use input value if present
             onSelect: () => {
                 if (
                     moment(this.get_value(), time_format).format(time_format) !==
@@ -25,6 +26,13 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
             onShow: (dp) => {
                 const $dp = $(dp.$datepicker);
                 $dp.find(".datepicker--button:visible").text(__("Now"));
+
+                // If input has value but no selection yet, seed picker from input
+                if (!dp.selectedDates.length && this.value) {
+                    const dt = parseInput(this.value);
+                    if (dt) dp.selectDate(dt);
+                }
+
                 if (!$dp.find(`.custom-time-selects-${this.df.fieldname}`).length) {
                     $dp.find(".datepicker--buttons, .datepicker--time-sliders, .datepicker--time-current").hide();
                     me.injectTimeSelects(dp);
@@ -97,7 +105,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
 
         $container.append($wrapper);
 
-        // build scroll lists
         const buildScroll = ($el, max, min = 0) => {
             let html = "";
             for (let i = min; i <= max; i++) {
@@ -132,7 +139,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
             dp.selectDate(date);
         };
 
-        // click on numbers
         $wrapper.on("click", ".time-option", (e) => {
             e.stopPropagation();
             const $opt  = $(e.currentTarget);
@@ -143,7 +149,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
             this.scrollToActive($list);
         });
 
-        // AM/PM
         if (is12h) {
             $btnAM.on("click", (e) => {
                 e.stopPropagation();
@@ -161,7 +166,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
             });
         }
 
-        // NOW
         $btnNow.on("click", (e) => {
             e.stopPropagation();
             const now = new Date();
@@ -184,25 +188,26 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlTim
             this.scrollAllToActive(dp);
         });
 
-        // init
+        // initialize from existing value (not "now")
         const initDate = dp.selectedDates[0]
-            || (this.value ? frappe.datetime.user_to_obj(this.value) : null)
-            || new Date();
+            || (this.value ? frappe.datetime.user_to_obj(this.value) : null);
 
-        let ih = initDate.getHours(), im = initDate.getMinutes(), is = initDate.getSeconds();
-        if (is12h) {
-            this.meridian = ih >= 12 ? "PM" : "AM";
-            ih = ih % 12 || 12;
+        if (initDate) {
+            let ih = initDate.getHours(), im = initDate.getMinutes(), is = initDate.getSeconds();
+            if (is12h) {
+                this.meridian = ih >= 12 ? "PM" : "AM";
+                ih = ih % 12 || 12;
+            }
+
+            $wrapper.find(".hour-scroll   .time-option").filter(`[data-val='${ih}']`).addClass("btn-primary");
+            $wrapper.find(".minute-scroll .time-option").filter(`[data-val='${im}']`).addClass("btn-primary");
+            if (hasSeconds) $wrapper.find(".second-scroll .time-option").filter(`[data-val='${is}']`).addClass("btn-primary");
+
+            if (is12h) {
+                (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
+            }
+
+            this.scrollAllToActive(dp);
         }
-
-        $wrapper.find(".hour-scroll   .time-option").filter(`[data-val='${ih}']`).addClass("btn-primary");
-        $wrapper.find(".minute-scroll .time-option").filter(`[data-val='${im}']`).addClass("btn-primary");
-        if (hasSeconds) $wrapper.find(".second-scroll .time-option").filter(`[data-val='${is}']`).addClass("btn-primary");
-
-        if (is12h) {
-            (this.meridian === "PM" ? $btnPM : $btnAM).addClass("btn-primary").removeClass("btn-default");
-        }
-
-        this.scrollAllToActive(dp);
     }
 };
