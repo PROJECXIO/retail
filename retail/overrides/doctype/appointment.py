@@ -59,6 +59,8 @@ class Appointment(BaseAppointment):
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
+		if self.flags.update_related_appointments:
+			self.update_all_related_appointments()
 
 	def on_submit(self):
 		self.sync_communication()
@@ -113,11 +115,17 @@ class Appointment(BaseAppointment):
 
 		if not self.custom_ends_on:
 			self.db_set("custom_ends_on", now_datetime())
+			if self.flags.update_related_appointments:
+				self.update_all_related_appointments()
 			return "ok"
 		
 		if time_diff_in_seconds(self.custom_ends_on, now_datetime()) <= 0:
+			if self.flags.update_related_appointments:
+				self.update_all_related_appointments()
 			return "ok"
 		self.db_set("custom_ends_on", now_datetime())
+		if self.flags.update_related_appointments:
+			self.update_all_related_appointments()
 		return "ok"
 	
 	@frappe.whitelist()
@@ -164,11 +172,15 @@ class Appointment(BaseAppointment):
 
 		if not self.custom_ends_on:
 			self.db_set("custom_ends_on", now_datetime())
+			if self.flags.update_related_appointments:
+				self.update_all_related_appointments()
 			return "ok"
 		
 		if time_diff_in_seconds(self.custom_ends_on, now_datetime()) <= 0:
 			return "ok"
 		self.db_set("custom_ends_on", now_datetime())
+		if self.flags.update_related_appointments:
+			self.update_all_related_appointments()
 		return "ok"
 	
 	def on_trash(self):
