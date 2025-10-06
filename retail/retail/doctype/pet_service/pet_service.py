@@ -3,7 +3,10 @@
 
 # import frappe
 from frappe.model.document import Document
-
+from frappe.utils import flt
 
 class PetService(Document):
-	pass
+	def validate(self):
+		self.total_price = 0
+		for item in self.service_items:
+			self.total_price += flt(item.rate)

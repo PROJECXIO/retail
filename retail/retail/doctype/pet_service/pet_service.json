@@ -7,10 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "service",
-  "service_item",
   "column_break_nfmf",
   "working_hours",
-  "price"
+  "section_break_ibmz",
+  "service_items",
+  "total_price"
  ],
  "fields": [
   {
@@ -35,25 +36,29 @@
    "reqd": 1
   },
   {
-   "fieldname": "price",
+   "fieldname": "section_break_ibmz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_price",
    "fieldtype": "Currency",
-   "label": "Price",
+   "label": "Total Price",
    "non_negative": 1,
+   "read_only": 1,
    "reqd": 1
   },
   {
-   "fieldname": "service_item",
-   "fieldtype": "Link",
+   "fieldname": "service_items",
+   "fieldtype": "Table",
    "label": "Service Item",
-   "link_filters": "[[\"Item Attribute\",\"disabled\",\"=\",0]]",
-   "options": "Item Attribute",
+   "options": "Service Item",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-05 16:36:07.502952",
+ "modified": "2025-10-06 11:37:38.843570",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
@@ -71,6 +76,84 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Pet User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Pet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Master Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1
   }
  ],
  "row_format": "Dynamic",

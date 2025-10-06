@@ -32,6 +32,9 @@ class Appointment(BaseAppointment):
 		pass
 
 	def validate(self):
+		if self.docstatus == 0:
+			self.set("status", "Draft")
+
 		if not self.scheduled_time:
 			self.scheduled_time = now_datetime()
 
@@ -50,8 +53,14 @@ class Appointment(BaseAppointment):
 
 	def before_save(self):
 		self.set_party_email()
+	
+	def before_submit(self):
+		self.status = "Open"
 
-	def on_update(self):
+	def on_cancel(self):
+		self.db_set("status", "Cancelled")
+
+	def on_submit(self):
 		self.sync_communication()
 		if self.flags.update_related_appointments:
 			self.update_all_related_appointments()
@@ -94,8 +103,74 @@ class Appointment(BaseAppointment):
 			appointment.flags.ignore_mandatory = True
 			appointment.save()
 
+	@frappe.whitelist()
+	def complete_appointment(self, update_ends_time=False):
+		if self.status != "Open":
+			return
+		self.db_set("status", "Completed Not Paid")
+		if not update_ends_time:
+			return "ok"
+
+		if not self.custom_ends_on:
+			self.db_set("custom_ends_on", now_datetime())
+			return "ok"
+		
+		if time_diff_in_seconds(self.custom_ends_on, now_datetime()) <= 0:
+			return "ok"
+		self.db_set("custom_ends_on", now_datetime())
+		return "ok"
+	
+	@frappe.whitelist()
+	def close_appointment(self):
+		if self.status != "Open":
+			return
+		self.db_set("status", "Closed")
+		return "ok"
+	
+	@frappe.whitelist()
+	def re_open_appointment(self):
+		if self.status != "Closed":
+			return
+		self.db_set("status", "Open")
+		return "ok"
 
 
+	@frappe.whitelist()
+	def create_invoice_appointment(self, update_ends_time=False):
+		if self.status != "Open":
+			return
+		invoice = frappe.new_doc("Sales Invoice")
+		invoice.customer = self.party
+		invoice.posting_date = getdate()
+		invoice.due_date = getdate()
+		for service in self.custom_appointment_services:
+			if not service.service:
+				continue
+			service = frappe.get_doc("Pet Service", service.service)
+			for item in service.service_items:
+				invoice.append("items", {
+					"item_code": item.item_code,
+					"uom": item.uom,
+					"qty": 1,
+					"rate": item.rate,
+				})
+		invoice.flags.ignore_permissions = True
+		invoice.save()
+		invoice.submit()
+		self.db_set("status", "Completed")
+		self.db_set("custom_sales_invoice", invoice.name)
+		if not update_ends_time:
+			return "ok"
+
+		if not self.custom_ends_on:
+			self.db_set("custom_ends_on", now_datetime())
+			return "ok"
+		
+		if time_diff_in_seconds(self.custom_ends_on, now_datetime()) <= 0:
+			return "ok"
+		self.db_set("custom_ends_on", now_datetime())
+		return "ok"
+	
 	def on_trash(self):
 		communications = frappe.get_all(
 			"Communication",
@@ -213,6 +288,8 @@ def get_appointments(start, end, user=None, for_reminder=False, filters=None) ->
 			functions.IfNull(Appointment.custom_vehicle, "unassigned").as_("resourceId"), # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
             Appointment.custom_subject.as_("subject"),
+            Appointment.docstatus,
+            Appointment.status,
             Appointment.customer_details.as_("description"),
             Appointment.custom_color.as_("color"),
             Appointment.scheduled_time.as_("scheduled_time"),
@@ -221,7 +298,8 @@ def get_appointments(start, end, user=None, for_reminder=False, filters=None) ->
             Appointment.custom_send_reminder.as_("send_reminder"),
 			ConstantColumn(0).as_("all_day"),
         ).where(
-			(
+			(Appointment.docstatus != 2)
+			& (
 				functions.Date(Appointment.scheduled_time).between(start, end)
 				| functions.Date(Appointment.custom_ends_on).between(start, end)
 				| (

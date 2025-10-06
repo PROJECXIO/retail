@@ -19,6 +19,7 @@ frappe.views.calendar["Appointment"] = {
 		schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
 		resourceLabelText: __("Resources"),
 		resourceAreaWidth: "15%",
+		defaultView: "agendaDay",
 		resources: function (callback) {
 			frappe.call({
 				method: "frappe.client.get_list",
