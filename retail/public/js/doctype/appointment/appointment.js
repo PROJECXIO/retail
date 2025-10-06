@@ -32,46 +32,6 @@ frappe.ui.form.on("Appointment", {
                         ],
                         primary_action(data) {
                             frappe.call({
-                                method: "complete_appointment",
-                                doc: frm.doc,
-                                args: data,
-                                callback: function (r) {
-                                    frm.reload_doc();
-                                },
-                            });
-                            dialog.hide();
-                        },
-                        primary_action_label: __("Complete Appointment"),
-                    });
-                    dialog.show();
-                },
-                __("Action")
-            );
-            frm.add_custom_button(
-                __("Complete Appointment with invoice"),
-                () => {
-                    let dialog = new frappe.ui.Dialog({
-                        title: __(
-                            "Complete Appointment with invoice"
-                        ),
-                        fields: [
-                            {
-                                fieldtype: "HTML",
-                                fieldname: "info_message",
-                                options: `
-                                    <div style="padding:16px 0; color:#666;">
-                                        ${__("This action will generate and submit a Sales Invoice for the appointment automatically.?")}
-                                    </div>
-                                `,
-                            },
-                            {
-                                label: __("Update Ends time"),
-                                fieldtype: "Check",
-                                fieldname: "update_ends_time",
-                            },
-                        ],
-                        primary_action(data) {
-                            frappe.call({
                                 method: "create_invoice_appointment",
                                 doc: frm.doc,
                                 args: data,
@@ -118,27 +78,6 @@ frappe.ui.form.on("Appointment", {
                 .addClass("btn-primary")
                 .removeClass("btn-default");
         }
-        if (frm.doc.docstatus == 1 && frm.doc.status == "Completed Not Paid") {
-            frm
-                .add_custom_button(__("Create Invoice"), () => {
-                    frappe.confirm(
-                        __(
-                            "This action will generate and submit a Sales Invoice for the appointment automatically.?"
-                        ),
-                        () => {
-                            frappe.call({
-                                method: "create_invoice_appointment",
-                                doc: frm.doc,
-                                callback: function (r) {
-                                    frm.reload_doc();
-                                },
-                            });
-                        }
-                    );
-                })
-                .addClass("btn-primary")
-                .removeClass("btn-default");
-        }
     },
     appointment_with(frm) {
         frm.trigger("set_label");
@@ -149,6 +88,7 @@ frappe.ui.form.on("Appointment", {
             await frm.set_value("customer_name", "");
             await frm.set_value("customer_phone_number", "");
             await frm.set_value("customer_email", "");
+            await frm.set_value("custom_address", "");
         } else {
             if (frm.doc.appointment_with == "Customer") {
                 let mobile_no = await frappe.db.get_value(
@@ -167,6 +107,13 @@ frappe.ui.form.on("Appointment", {
                     customer_name &&
                     customer_name.message &&
                     customer_name.message.customer_name;
+                let address = await frappe.db.get_value(
+                    "Customer",
+                    frm.doc.party,
+                    "address"
+                );
+                address =
+                    address && address.message && address.message.address;
                 await frm.set_value("customer_name", customer_name);
                 await frm.set_value("customer_phone_number", mobile_no);
             }
