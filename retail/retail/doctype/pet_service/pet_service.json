@@ -51,14 +51,14 @@
    "fieldname": "service_items",
    "fieldtype": "Table",
    "label": "Service Item",
-   "options": "Item",
+   "options": "Service Item",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-05 17:36:07.502952",
+ "modified": "2025-10-06 13:39:07.292158",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
