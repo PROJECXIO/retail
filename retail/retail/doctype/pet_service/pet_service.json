@@ -45,15 +45,14 @@
    "fieldname": "service_item",
    "fieldtype": "Link",
    "label": "Service Item",
-   "link_filters": "[[\"Item Attribute\",\"disabled\",\"=\",0]]",
-   "options": "Item Attribute",
+   "options": "Item",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-05 16:36:07.502952",
+ "modified": "2025-10-05 17:36:07.502952",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
