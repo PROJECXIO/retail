@@ -145,7 +145,7 @@ class Appointment(BaseAppointment):
 
 	@frappe.whitelist()
 	def create_invoice_appointment(self, update_ends_time=False):
-		if self.status != "Open":
+		if self.status != "Open" and self.status != "Completed Not Paid":
 			return
 		invoice = frappe.new_doc("Sales Invoice")
 		invoice.customer = self.party
