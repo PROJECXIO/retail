@@ -45,8 +45,7 @@
    "fieldname": "service_item",
    "fieldtype": "Link",
    "label": "Service Item",
-   "link_filters": "[[\"Item Attribute\",\"disabled\",\"=\",0]]",
-   "options": "Item Attribute",
+   "options": "Item",
    "reqd": 1
   }
  ],
