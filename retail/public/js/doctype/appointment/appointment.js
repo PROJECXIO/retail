@@ -107,15 +107,17 @@ frappe.ui.form.on("Appointment", {
                     customer_name &&
                     customer_name.message &&
                     customer_name.message.customer_name;
-                let address = await frappe.db.get_value(
+                let primary_address = await frappe.db.get_value(
                     "Customer",
                     frm.doc.party,
-                    "address"
+                    "primary_address"
                 );
-                address =
-                    address && address.message && address.message.address;
+                primary_address =
+                    primary_address && primary_address.message && primary_address.message.primary_address || "";
+                primary_address = primary_address.replaceAll("<br>", "")
                 await frm.set_value("customer_name", customer_name);
                 await frm.set_value("customer_phone_number", mobile_no);
+                await frm.set_value("custom_address", primary_address);
             }
         }
     },
