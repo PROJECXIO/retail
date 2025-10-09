@@ -12,6 +12,32 @@ frappe.ui.form.on("Appointment", {
             frm.add_custom_button(
                 __("Complete Appointment"),
                 () => {
+                    const table_fields = [
+                        {
+                            fieldname: "mode_of_payment",
+                            fieldtype: "Link",
+                            in_list_view: 1,
+                            label: __("Mode of Payment"),
+                            options: "Mode of Payment",
+                            reqd: 1,
+                        },
+                        {
+                            fieldname: "paid_amount",
+                            fieldtype: "Currency",
+                            in_list_view: 1,
+                            label: __("Paid Amount"),
+                            options: "company:company_currency",
+                            onchange: function () {
+                                dialog.fields_dict.payments_details.df.data.some((d) => {
+                                    if (d.idx == this.doc.idx) {
+                                        d.paid_amount = this.value;
+                                        dialog.fields_dict.payments_details.grid.refresh();
+                                        return true;
+                                    }
+                                });
+                            },
+                        },
+                    ];
                     let dialog = new frappe.ui.Dialog({
                         title: __("Complete Appointment"),
                         fields: [
@@ -28,6 +54,15 @@ frappe.ui.form.on("Appointment", {
                                 label: __("Update Ends time"),
                                 fieldtype: "Check",
                                 fieldname: "update_ends_time",
+                            },
+                            {
+                                fieldname: "payments_details",
+                                fieldtype: "Table",
+                                label: __("Customer Payments"),
+                                cannot_add_rows: false,
+                                in_place_edit: true,
+                                data: [],
+                                fields: table_fields,
                             },
                         ],
                         primary_action(data) {

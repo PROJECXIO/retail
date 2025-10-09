@@ -23,6 +23,7 @@ from frappe.utils import (
 )
 
 from erpnext.crm.doctype.appointment.appointment import Appointment as BaseAppointment
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
 class Appointment(BaseAppointment):
 	def __setup__(self):
@@ -144,9 +145,14 @@ class Appointment(BaseAppointment):
 
 
 	@frappe.whitelist()
-	def create_invoice_appointment(self, update_ends_time=False):
+	def create_invoice_appointment(self, update_ends_time=False, payments_details=[]):
 		if self.status != "Open" and self.status != "Completed Not Paid":
 			return
+		# validate total payment
+		total_paid_amount = 0
+		for payment in payments_details:
+			print(payment)
+
 		invoice = frappe.new_doc("Sales Invoice")
 		invoice.customer = self.party
 		invoice.posting_date = getdate()
@@ -165,6 +171,18 @@ class Appointment(BaseAppointment):
 		invoice.flags.ignore_permissions = True
 		invoice.save()
 		invoice.submit()
+
+		for payment in payments_details:
+			mode_of_payment = payment.get("mode_of_payment")
+			paid_amount = flt(payment.get("paid_amount"))
+			if not mode_of_payment or paid_amount == 0:
+				continue
+			payment_doc = get_payment_entry(dt="Sales Invoice", dn=invoice.name, ignore_permissions=True)
+			payment_doc.mode_of_payment = mode_of_payment
+			payment_doc.references[0].allocated_amount = paid_amount
+			payment_doc.flags.ignore_permissions=True
+			payment_doc.save()
+			payment_doc.submit()
 		self.db_set("status", "Completed")
 		self.db_set("custom_sales_invoice", invoice.name)
 		if not update_ends_time:
