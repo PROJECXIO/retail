@@ -499,7 +499,8 @@ erpnext.PointOfSale.Payment = class {
 	}
 
 	render_payment_mode_dom() {
-		const doc = this.events.get_frm().doc;
+		const frm = this.events.get_frm();
+		const doc = frm.doc;
 		const payments = doc.payments;
 		const currency = doc.currency;
 
@@ -525,6 +526,20 @@ erpnext.PointOfSale.Payment = class {
 				})
 				.join("")}`
 		);
+		
+		this.due_date = frappe.ui.form.make_control({
+			df: {
+				label: __("Payment Due Date"),
+				fieldtype: "Date",
+				reqd: 1,
+				onchange: function () {
+					frm.set_value("due_date", this.value);
+				},
+			},
+			parent: this.$payment_modes,
+			render_input: true,
+		});
+		this.due_date.set_value(doc.due_date);
 
 		payments.forEach((p) => {
 			const mode = this.sanitize_mode_of_payment(p.mode_of_payment);
