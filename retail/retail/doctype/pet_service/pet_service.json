@@ -9,6 +9,7 @@
   "service",
   "column_break_nfmf",
   "working_hours",
+  "features",
   "section_break_ibmz",
   "service_items",
   "section_break_qphe",
@@ -74,12 +75,18 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "features",
+   "fieldtype": "Table MultiSelect",
+   "label": "Features",
+   "options": "Pet Service Feature Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-13 11:13:20.747463",
+ "modified": "2025-10-13 20:04:30.579241",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
