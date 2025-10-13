@@ -9,7 +9,7 @@
    "label": "Pets By Type"
   }
  ],
- "content": "[{\"id\":\"Y5CAGRHxeY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Pets</span>\",\"col\":12}},{\"id\":\"EoYwJVAnr0\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Pets By Type\",\"col\":6}},{\"id\":\"13IasmastH\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Pets By Breed\",\"col\":6}},{\"id\":\"kRV1RZ0rFZ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"EOI3_ZeCNz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Pets\",\"col\":4}},{\"id\":\"0_NMI5HZeS\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"-nbq0AzDpn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"F8M-i1WUgC\",\"type\":\"card\",\"data\":{\"card_name\":\"Pets Specifications\",\"col\":4}},{\"id\":\"xVD2ozmkUa\",\"type\":\"card\",\"data\":{\"card_name\":\"Pet Master Data\",\"col\":4}},{\"id\":\"H_o-nF0_UC\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointments\",\"col\":4}}]",
+ "content": "[{\"id\":\"Y5CAGRHxeY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Pets</span>\",\"col\":12}},{\"id\":\"EoYwJVAnr0\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Pets By Type\",\"col\":6}},{\"id\":\"13IasmastH\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Pets By Breed\",\"col\":6}},{\"id\":\"kRV1RZ0rFZ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"EOI3_ZeCNz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Pets\",\"col\":4}},{\"id\":\"0_NMI5HZeS\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"-nbq0AzDpn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"F8M-i1WUgC\",\"type\":\"card\",\"data\":{\"card_name\":\"Pets Specifications\",\"col\":3}},{\"id\":\"xVD2ozmkUa\",\"type\":\"card\",\"data\":{\"card_name\":\"Pet Master Data\",\"col\":3}},{\"id\":\"H_o-nF0_UC\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointments\",\"col\":3}},{\"id\":\"YCLcl58qLi\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":3}}]",
  "creation": "2025-09-28 16:05:27.332423",
  "custom_blocks": [],
  "docstatus": 0,
@@ -94,7 +94,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Pet Master Data",
-   "link_count": 4,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -132,15 +132,44 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Pet Services",
+   "label": "Packages",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Service Feature",
+   "link_count": 0,
+   "link_to": "Pet Service Feature",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pet Service",
    "link_count": 0,
    "link_to": "Pet Service",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Service Package",
+   "link_count": 0,
+   "link_to": "Customer Service Package",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-10-06 13:38:04.190485",
+ "modified": "2025-10-13 20:06:44.559955",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",
