@@ -1,0 +1,212 @@
+{
+ "actions": [],
+ "autoname": "format:CPS-{YY}{MM}{DD}{###}",
+ "creation": "2025-10-09 14:05:13.733129",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_pcrk",
+  "customer",
+  "customer_name",
+  "mobile",
+  "email_address",
+  "customer_address",
+  "column_break_bwlr",
+  "posting_date",
+  "sales_invoice",
+  "amended_from",
+  "package_service_section",
+  "package_services",
+  "additional_discount_section",
+  "additional_discount_as",
+  "column_break_pivd",
+  "additional_discount",
+  "totals_section",
+  "total_package_price",
+  "net_total_package_price",
+  "column_break_rnxq",
+  "total_package_qty",
+  "total_extra_qty",
+  "net_total_qty"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_pcrk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Customer Service Package",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fetch_from": "customer.mobile_no",
+   "fieldname": "mobile",
+   "fieldtype": "Read Only",
+   "label": "Mobile"
+  },
+  {
+   "fetch_from": "customer.email_id",
+   "fieldname": "email_address",
+   "fieldtype": "Read Only",
+   "label": "Email Address"
+  },
+  {
+   "fieldname": "customer_address",
+   "fieldtype": "Small Text",
+   "label": "Customer Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bwlr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Now",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "package_service_section",
+   "fieldtype": "Section Break",
+   "label": "Package Service"
+  },
+  {
+   "fieldname": "package_services",
+   "fieldtype": "Table",
+   "label": "Package Services",
+   "options": "Package Service",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "total_package_price",
+   "fieldtype": "Float",
+   "label": "Total Package Price",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_package_qty",
+   "fieldtype": "Float",
+   "label": "Total Package Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rnxq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_extra_qty",
+   "fieldtype": "Float",
+   "label": "Total Extra Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "additional_discount_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Discount"
+  },
+  {
+   "fieldname": "additional_discount",
+   "fieldtype": "Float",
+   "label": "Additional Discount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "additional_discount_as",
+   "fieldtype": "Select",
+   "label": "Additional Discount as",
+   "options": "\nPercent\nFixed Amount"
+  },
+  {
+   "fieldname": "column_break_pivd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "net_total_qty",
+   "fieldtype": "Float",
+   "label": "Net Total Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "net_total_package_price",
+   "fieldtype": "Float",
+   "label": "Net Total Package Price",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-13 11:47:53.006909",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Customer Service Package",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer_name"
+}

@@ -8,6 +8,8 @@
   "item_code",
   "description",
   "rate",
+  "discount",
+  "discount_as",
   "uom"
  ],
  "fields": [
@@ -42,6 +44,7 @@
    "oldfieldname": "rate",
    "oldfieldtype": "Currency",
    "print_hide": 1,
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -55,11 +58,27 @@
    "oldfieldtype": "Link",
    "options": "UOM",
    "read_only": 1
+  },
+  {
+   "fieldname": "discount_as",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Discount As",
+   "options": "\nPercent\nFixed Amount",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "discount",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Discount",
+   "precision": "2"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2025-10-06 11:34:52.322599",
+ "modified": "2025-10-13 11:11:23.381439",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Service Item",

@@ -4,6 +4,8 @@ PET_ROLES = [
     "Pet Manager",
     "Pet User",
 ]
+
+
 def prepare_pet_roles():
     for role in PET_ROLES:
         if frappe.db.exists("Role", role):

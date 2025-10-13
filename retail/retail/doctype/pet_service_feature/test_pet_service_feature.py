@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestEmployeeSponsor(FrappeTestCase):
-    pass
+class TestPetServiceFeature(FrappeTestCase):
+	pass

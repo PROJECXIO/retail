@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class ServiceItem(Document):
-    pass
+class PetServiceFeature(Document):
+	pass
