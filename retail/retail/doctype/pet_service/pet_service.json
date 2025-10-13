@@ -11,7 +11,10 @@
   "working_hours",
   "section_break_ibmz",
   "service_items",
-  "total_price"
+  "section_break_qphe",
+  "total_price",
+  "column_break_mhpu",
+  "total_net_price"
  ],
  "fields": [
   {
@@ -40,6 +43,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "default": "0",
    "fieldname": "total_price",
    "fieldtype": "Currency",
    "label": "Total Price",
@@ -53,12 +57,29 @@
    "label": "Service Item",
    "options": "Service Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_qphe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_mhpu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_net_price",
+   "fieldtype": "Currency",
+   "label": "Total Net Price",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-06 13:39:07.292158",
+ "modified": "2025-10-13 11:13:20.747463",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
