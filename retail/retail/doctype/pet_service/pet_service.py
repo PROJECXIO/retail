@@ -17,18 +17,19 @@ class PetService(Document):
         if self.discount_as == "Percent" and flt(self.discount) > 100:
             frappe.throw(_("Discount Percent can not be greater that 100"))
 
-        if self.discount_as == "Fixed Amount" and flt(self.discount) >  flt(self.rate):
-            frappe.throw(_("Discount Amount can not be greater that rate {}", [self.rate]))
+        if self.discount_as == "Fixed Amount" and flt(self.discount) >  flt(self.total_price):
+            frappe.throw(_("Discount Amount can not be greater that total price {}", [self.total_price]))
 
+        
         total_price = 0
-        total_net_price = 0
-        total_price = flt(self.rate)
+        for row in self.service_items:
+            total_price += flt(row.rate)
         total_net_price = 0
         if(self.discount_as == "Percent"):
-            total_net_price += (flt(self.rate) - (flt(self.rate) * flt(self.discount) / 100))
+            total_net_price += (flt(total_price) - (flt(total_price) * flt(self.discount) / 100))
         elif(self.discount_as == "Fixed Amount"):
-            total_net_price += (flt(self.rate) - flt(self.discount))
+            total_net_price += (flt(total_price) - flt(self.discount))
         else:
-            total_net_price += flt(self.rate)
+            total_net_price += flt(total_price)
 
         return total_price, total_net_price

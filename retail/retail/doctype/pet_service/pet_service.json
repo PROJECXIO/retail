@@ -8,17 +8,10 @@
  "field_order": [
   "service",
   "working_hours",
-  "features",
   "column_break_nfmf",
-  "pet_type",
-  "pet_size",
-  "pet_breed",
+  "features",
   "section_break_ibmz",
-  "item",
-  "description",
-  "column_break_cloi",
-  "uom",
-  "rate",
+  "service_items",
   "section_break_qphe",
   "discount",
   "discount_as",
@@ -51,7 +44,7 @@
   {
    "fieldname": "section_break_ibmz",
    "fieldtype": "Section Break",
-   "label": "Item"
+   "label": "Service Items"
   },
   {
    "default": "0",
@@ -86,60 +79,6 @@
    "options": "Pet Service Feature Table"
   },
   {
-   "fieldname": "pet_type",
-   "fieldtype": "Link",
-   "label": "Pet Type ",
-   "options": "Pet Type"
-  },
-  {
-   "fieldname": "pet_size",
-   "fieldtype": "Link",
-   "label": "Pet Size",
-   "options": "Pet Size"
-  },
-  {
-   "fieldname": "pet_breed",
-   "fieldtype": "Link",
-   "label": "Pet Breed",
-   "options": "Pet Breed"
-  },
-  {
-   "fieldname": "item",
-   "fieldtype": "Link",
-   "label": "Item",
-   "options": "Item",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "item.stock_uom",
-   "fieldname": "uom",
-   "fieldtype": "Link",
-   "label": "UOM",
-   "options": "UOM",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fetch_from": "item.description",
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_cloi",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "rate",
-   "fieldtype": "Currency",
-   "label": "Rate",
-   "non_negative": 1,
-   "options": "UOM",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "discount",
    "fieldtype": "Float",
    "label": "Discount",
@@ -150,12 +89,19 @@
    "fieldtype": "Select",
    "label": "Discount As",
    "options": "\nPercent\nFixed Amount"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Pet Service Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-14 15:07:34.675077",
+ "modified": "2025-10-14 15:58:32.138415",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
