@@ -4,8 +4,6 @@
 frappe.ui.form.on("Pet Service Addon", {
 	async item(frm) {
         if(frm.doc.item){
-            console.log(frm.doc.item)
-            console.log(frm.doc.uom)
             const value = await frappe.db.get_value(
                 "Item Price",
                 { item_code: frm.doc.item, uom: frm.doc.uom, selling: 1 },
