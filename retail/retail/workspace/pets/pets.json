@@ -133,7 +133,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Packages",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -151,6 +151,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Service Addon",
+   "link_count": 0,
+   "link_to": "Pet Service Addon",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Pet Service",
    "link_count": 0,
    "link_to": "Pet Service",
@@ -161,15 +171,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Service Package",
+   "label": "Pet Service Package",
    "link_count": 0,
-   "link_to": "Customer Service Package",
+   "link_to": "Pet Service Package",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-10-13 20:06:44.559955",
+ "modified": "2025-10-14 15:11:07.931821",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",
