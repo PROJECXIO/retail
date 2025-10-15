@@ -9,6 +9,8 @@
   "title",
   "column_break_bwlr",
   "posting_date",
+  "pet_type",
+  "pet_size",
   "package_service_section",
   "package_services",
   "additional_discount_section",
@@ -135,12 +137,24 @@
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 1
+  },
+  {
+   "fieldname": "pet_type",
+   "fieldtype": "Link",
+   "label": "Pet Type",
+   "options": "Pet Type"
+  },
+  {
+   "fieldname": "pet_size",
+   "fieldtype": "Link",
+   "label": "Pet Size",
+   "options": "Pet Size"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-14 15:26:48.613660",
+ "modified": "2025-10-15 10:49:41.280475",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",

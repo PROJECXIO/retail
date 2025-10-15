@@ -2,6 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Pet Service Package", {
+    refresh(frm){
+        frm.set_query("service", "package_services", function(doc){
+            return {
+                query: "retail.retail.doctype.pet_service_package.pet_service_package.service_query",
+				filters: {
+					pet_type: doc.pet_type,
+					pet_size: doc.pet_size,
+				},
+            }
+        });
+    },
     additional_discount_as(frm) {
         frm.trigger("update_total_price");
     },
