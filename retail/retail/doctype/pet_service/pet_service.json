@@ -7,14 +7,18 @@
  "engine": "InnoDB",
  "field_order": [
   "service",
-  "column_break_nfmf",
   "working_hours",
+  "column_break_nfmf",
   "features",
   "section_break_ibmz",
   "service_items",
+  "pet_type",
+  "pet_size",
   "section_break_qphe",
-  "total_price",
+  "discount",
+  "discount_as",
   "column_break_mhpu",
+  "total_price",
   "total_net_price"
  ],
  "fields": [
@@ -41,7 +45,8 @@
   },
   {
    "fieldname": "section_break_ibmz",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Service Items"
   },
   {
    "default": "0",
@@ -50,13 +55,6 @@
    "label": "Total Price",
    "non_negative": 1,
    "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "service_items",
-   "fieldtype": "Table",
-   "label": "Service Item",
-   "options": "Service Item",
    "reqd": 1
   },
   {
@@ -81,12 +79,45 @@
    "fieldtype": "Table MultiSelect",
    "label": "Features",
    "options": "Pet Service Feature Table"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Float",
+   "label": "Additional Discount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "discount_as",
+   "fieldtype": "Select",
+   "label": "Additional Discount as",
+   "options": "\nPercent\nFixed Amount"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Pet Service Item Detail",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pet_type",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Pet Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pet_size",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Pet Size",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-13 20:04:30.579241",
+ "modified": "2025-10-15 10:43:34.485287",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",

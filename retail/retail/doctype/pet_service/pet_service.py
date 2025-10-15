@@ -9,37 +9,40 @@ from frappe.utils import flt
 
 class PetService(Document):
     def validate(self):
-        total_price, total_net_price = self.check_discount_values()
+        total_price, total_net_price, type, size = self.check_discount_values()
         self.total_price = total_price
         self.total_net_price = total_net_price
+        self.pet_type = type
+        self.pet_size = size
 
     def check_discount_values(self):
+        if self.discount_as == "Percent" and flt(self.discount) > 100:
+            frappe.throw(_("Discount Percent can not be greater that 100"))
+        type = set()
+        size = set()
         total_price = 0
         total_net_price = 0
-        for item in self.service_items:
-            if item.discount_as == "Percent" and flt(item.discount) > 100:
-                frappe.throw(
-                    _("Discount Percent at row {} can not be greater that 100").format(
-                        item.idx
-                    )
-                )
-            if item.discount_as == "Fixed Amount" and flt(item.discount) > flt(
-                item.rate
-            ):
-                frappe.throw(
-                    _(
-                        "Discount Amount at row {} can not be greater that rate {}"
-                    ).format(item.idx, item.rate)
-                )
-
-            total_price += flt(item.rate)
-            if item.discount_as == "Percent":
-                total_net_price += flt(item.rate) - (
-                    flt(item.rate) * flt(item.discount) / 100
-                )
-            elif item.discount_as == "Fixed Amount":
-                total_net_price += flt(item.rate) - flt(item.discount)
+        for row in self.service_items:
+            total_price += flt(row.rate)
+            amount = 0
+            if row.discount_as == "Percent":
+                amount = flt(row.rate) - (flt(row.rate) * flt(row.discount)) / 100
+            elif row.discount_as == "Fixed Amount":
+                amount = flt(row.rate) - flt(row.discount)
             else:
-                total_net_price += flt(item.rate)
+                amount = flt(row.rate)
+            total_net_price += amount
+            if row.pet_type:
+                type.add(row.pet_type)
+            if row.pet_size:
+                size.add(row.pet_size)
+        if self.discount_as == "Fixed Amount" and flt(self.discount) >  flt(total_net_price):
+            frappe.throw(_("Discount Amount can not be greater that total price {}".format(total_net_price)))
+        type = ", ".join(type)
+        size = ", ".join(size)
+        if self.discount_as == "Percent":
+            total_net_price = flt(total_net_price) - (flt(total_net_price) * flt(self.discount)) / 100
+        elif self.discount_as == "Fixed Amount":
+            total_net_price = flt(total_net_price) - flt(self.discount)
 
-        return total_price, total_net_price
+        return total_price, total_net_price, type, size
