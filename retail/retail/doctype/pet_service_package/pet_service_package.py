@@ -11,40 +11,18 @@ class PetServicePackage(Document):
 	def validate(self):
 		(
 			self.total_package_price,
-			self.net_total_package_price,
 			self.total_package_qty,
 		) = self.check_discount_values()
 
 	def check_discount_values(self):
 		total_price = 0
-		total_net_price = 0
 		total_qty = 0
 
 		for row in self.package_services:
 			total_qty += cint(row.qty)
-
 			total_price += flt(row.rate)
-			total_net_price += flt(row.rate)
 			
-		if self.additional_discount_as == "Percent":
-			if flt(self.additional_discount) > 100:
-				frappe.throw(
-					_("Additional Discount Percent can not be greater that 100")
-				)
-			total_net_price = (
-				total_net_price
-				- (total_net_price * flt(self.additional_discount)) / 100
-			)
-		elif self.additional_discount_as == "Fixed Amount":
-			if flt(self.additional_discount) > total_net_price:
-				frappe.throw(
-					_(
-						"Additional Discount Amount can not be greater that rate {}"
-					).format(total_net_price)
-				)
-			total_net_price = total_net_price - flt(self.additional_discount)
-
-		return total_price, total_net_price, total_qty
+		return total_price, total_qty
 
 # searches for valid services
 @frappe.whitelist()
@@ -104,6 +82,66 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
 		),
 		{"txt": "%%%s%%" % txt, "_txt": txt.replace("%", ""), "start": start, "page_len": page_len},
 	)
+
+# searches for valid services items
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def service_item_query(doctype, txt, searchfield, start, page_len, filters):
+	item_fields = get_fields(doctype, ["pet_service_item"])
+	item_filters = {}
+	if "service" in filters:
+		item_filters.update({
+			"parent": filters.get("service"),
+		})
+	
+	valid_items_in_service = frappe.db.sql(
+		"""select DISTINCT(pet_service_item) from `tabPet Service Item Detail`
+		where docstatus < 2
+			{fcond} {mcond}
+		order by
+			(case when locate(%(_txt)s, pet_service_item) > 0 then locate(%(_txt)s, pet_service_item) else 99999 end),
+			idx desc,
+			pet_service_item
+		limit %(page_len)s offset %(start)s""".format(
+			**{
+				"fields": ", ".join(item_fields),
+				"fcond": get_filters_cond("Pet Service Item Detail", item_filters, []),
+				"mcond": get_match_cond("Pet Service Item Detail"),
+			}
+		),
+		{"txt": "%%%s%%" % txt, "_txt": txt.replace("%", ""), "start": start, "page_len": page_len},
+		pluck="pet_service_item",
+	)
+	if len(valid_items_in_service) == 0:
+		return []
+
+	doctype = "Pet Service Item"
+	conditions = []
+	fields = get_fields(doctype, ["name", "rate"])
+	filters = {
+		"name": ["in", valid_items_in_service]
+	}
+	return frappe.db.sql(
+		"""select name, CONCAT('Rate ', ROUND(rate, 3)) from `tabPet Service Item`
+		where docstatus < 2
+			and ({key} like %(txt)s
+				or name like %(txt)s)
+			{fcond} {mcond}
+		order by
+			(case when locate(%(_txt)s, name) > 0 then locate(%(_txt)s, name) else 99999 end),
+			idx desc,
+			name
+		limit %(page_len)s offset %(start)s""".format(
+			**{
+				"fields": ", ".join(fields),
+				"key": searchfield,
+				"fcond": get_filters_cond(doctype, filters, conditions),
+				"mcond": get_match_cond(doctype),
+			}
+		),
+		{"txt": "%%%s%%" % txt, "_txt": txt.replace("%", ""), "start": start, "page_len": page_len},
+	)
+
 
 def get_fields(doctype, fields=None):
 	if fields is None:
