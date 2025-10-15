@@ -1,4 +1,5 @@
 frappe.listview_settings["Appointment"] = {
+  refresh: function(listview) { $(".layout-side-section").hide(); },
   add_fields: ["status", "order_type"],
   get_indicator: function (doc) {
     if (doc.status === "Closed") {
