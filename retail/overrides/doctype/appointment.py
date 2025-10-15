@@ -59,6 +59,10 @@ class Appointment(BaseAppointment):
 
         if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
             frappe.throw(_("Select Google Calendar to which event should be synced."))
+        total_price, total_net_price, total_hours = self.check_discount_values()
+        self.custom_total_amount = total_price
+        self.custom_total_net_amount = total_net_price
+        self.custom_total_working_hours = total_hours
 
     def before_save(self):
         self.set_party_email()
@@ -183,7 +187,7 @@ class Appointment(BaseAppointment):
             if not service.service:
                 continue
             service = frappe.get_doc("Pet Service", service.service)
-            for item in service.service_items:
+            for item in service.custom_appointment_services:
                 invoice.append(
                     "items",
                     {
@@ -332,7 +336,34 @@ class Appointment(BaseAppointment):
 
     def after_insert(self):
         insert_event_in_google_calendar(self)
-    
+
+    def check_discount_values(self):
+        if self.custom_additional_discount_as == "Percent" and flt(self.custom_additional_discount) > 100:
+            frappe.throw(_("Discount Percent can not be greater that 100"))
+        total_price = 0
+        total_net_price = 0
+        total_hours = 0
+        for row in self.custom_appointment_services:
+            total_price += flt(row.price)
+            total_hours += flt(row.working_hours)
+            amount = 0
+            if row.discount_as == "Percent":
+                amount = flt(row.price) - (flt(row.price) * flt(row.discount)) / 100
+            elif row.discount_as == "Fixed Amount":
+                amount = flt(row.price) - flt(row.discount)
+            else:
+                amount = flt(row.price)
+            total_net_price += amount
+
+        if self.custom_additional_discount_as == "Fixed Amount" and flt(self.custom_additional_discount) >  flt(total_net_price):
+            frappe.throw(_("Discount Amount can not be greater that total price {}".format(total_net_price)))
+        if self.custom_additional_discount_as == "Percent":
+            total_net_price = flt(total_net_price) - (flt(total_net_price) * flt(self.custom_additional_discount)) / 100
+        elif self.custom_additional_discount_as == "Fixed Amount":
+            total_net_price = flt(total_net_price) - flt(self.custom_additional_discount)
+
+        return total_price, total_net_price, total_hours
+
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
         exists = frappe.db.exists(
@@ -350,6 +381,8 @@ class Appointment(BaseAppointment):
                 "item": doc.pet_service_item,
                 "rate": rate,
             }
+        else:
+            frappe.msgprint(_("No valid item found for the pet"))
         return {
             "item": None,
             "rate": 0,
