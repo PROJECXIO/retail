@@ -12,6 +12,8 @@
   "features",
   "section_break_ibmz",
   "service_items",
+  "pet_type",
+  "pet_size",
   "section_break_qphe",
   "discount",
   "discount_as",
@@ -81,27 +83,41 @@
   {
    "fieldname": "discount",
    "fieldtype": "Float",
-   "label": "Discount",
+   "label": "Additional Discount",
    "precision": "2"
   },
   {
    "fieldname": "discount_as",
    "fieldtype": "Select",
-   "label": "Discount As",
+   "label": "Additional Discount as",
    "options": "\nPercent\nFixed Amount"
   },
   {
    "fieldname": "service_items",
    "fieldtype": "Table",
    "label": "Service Items",
-   "options": "Pet Service Item",
+   "options": "Pet Service Item Detail",
    "reqd": 1
+  },
+  {
+   "fieldname": "pet_type",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Pet Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pet_size",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Pet Size",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-14 15:58:32.138415",
+ "modified": "2025-10-15 10:43:34.485287",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",

@@ -13,15 +13,22 @@ frappe.ui.form.on("Pet Service", {
         let total_net_price = 0;
         (frm.doc.service_items || []).forEach(row => {
             total_price += flt(row.rate);
+            let amount = 0;
+            if (row.discount_as == "Percent") {
+                amount = flt(row.rate) - (flt(row.rate) * flt(row.discount)) / 100;
+            } else if (row.discount_as == "Fixed Amount") {
+                amount = flt(row.rate) - flt(row.discount);
+            } else {
+                amount = flt(row.rate);
+            }
+            total_net_price += amount;
         });
 
         if (frm.doc.discount_as == "Percent") {
-            total_net_price +=
-                flt(total_price) - (flt(total_price) * flt(frm.doc.discount)) / 100;
+            total_net_price =
+                flt(total_net_price) - (flt(total_net_price) * flt(frm.doc.discount)) / 100;
         } else if (frm.doc.discount_as == "Fixed Amount") {
-            total_net_price += flt(total_price) - flt(frm.doc.discount);
-        } else {
-            total_net_price += flt(total_price);
+            total_net_price = flt(total_net_price) - flt(frm.doc.discount);
         }
 
         frm.set_value("total_price", total_price);
@@ -50,25 +57,23 @@ frappe.ui.form.on("Pet Service", {
     },
 });
 
-frappe.ui.form.on("Pet Service Item", {
-    service_items_remove(frm, cdt, cdn){
-frm.trigger("update_total_price");
+frappe.ui.form.on("Pet Service Item Detail", {
+    service_items_remove(frm, cdt, cdn) {
+        frm.trigger("update_total_price");
     },
-    async item(frm, cdt, cdn) {
+    async pet_service_item(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
-        if (row.item) {
-            const value = await frappe.db.get_value(
-                "Item Price",
-                { item_code: row.item, uom: row.uom, selling: 1 },
-                "price_list_rate"
-            );
-            const rate =
-                (value && value.message && value.message.price_list_rate) || 0;
-            row.rate = rate;
+        if (row.pet_service_item) {
             frm.trigger("update_total_price");
         } else {
             row.rate = 0;
             frm.trigger("update_total_price");
         }
+    },
+    discount_as(frm, cdt, cdn) {
+        frm.trigger("update_total_price");
+    },
+    discount(frm, cdt, cdn) {
+        frm.trigger("update_total_price");
     },
 });
