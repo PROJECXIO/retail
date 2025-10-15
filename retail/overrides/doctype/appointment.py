@@ -174,29 +174,37 @@ class Appointment(BaseAppointment):
     def create_invoice_appointment(self, update_ends_time=False, payments_details=[]):
         if self.status != "Open" and self.status != "Completed Not Paid":
             return
-        # validate total payment
-        total_paid_amount = 0
-        for payment in payments_details:
-            print(payment)
 
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = self.party
         invoice.posting_date = getdate()
         invoice.due_date = getdate()
         for service in self.custom_appointment_services:
-            if not service.service:
+            if not service.service or not service.service_item:
                 continue
-            service = frappe.get_doc("Pet Service", service.service)
-            for item in service.custom_appointment_services:
-                invoice.append(
-                    "items",
-                    {
-                        "item_code": item.item_code,
-                        "uom": item.uom,
-                        "qty": 1,
-                        "rate": item.rate,
-                    },
-                )
+            doc = frappe.get_doc("Pet Service Item", service.service_item)
+            rate = flt(service.price)
+            if flt(service.discount) > 0:
+                if service.discount_as == "Percent":
+                    rate = rate - (flt(service.discount) * rate / 100)
+                elif service.discount_as == "Fixed Amount":
+                    rate = rate - flt(service.discount)
+            item = {
+                "item_code": doc.item,
+                "uom": doc.uom,
+                "qty": 1,
+                "rate": rate,
+            }
+            
+            invoice.append(
+                "items", item,
+            )
+        additional_discount = flt(self.custom_additional_discount)
+        if additional_discount > 0:
+            if self.custom_additional_discount_as == "Fixed Amount":
+                invoice.discount_amount = additional_discount
+            elif self.custom_additional_discount_as == "Percent":
+                invoice.discount_amount = additional_discount 
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
