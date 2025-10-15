@@ -1,0 +1,221 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-15 17:41:06.082660",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_hui2",
+  "customer",
+  "customer_name",
+  "mobile_no",
+  "email_address",
+  "column_break_liqq",
+  "customer_address",
+  "amended_from",
+  "subscription_details_section",
+  "pet_service",
+  "column_break_nmjr",
+  "subscription_at",
+  "section_break_ucag",
+  "package_services",
+  "additional_discount_section",
+  "additional_discount",
+  "column_break_wplo",
+  "additional_discount_as",
+  "totals_section",
+  "total_amount",
+  "total_net_amount",
+  "column_break_jngb",
+  "total_qty",
+  "total_extra_qty",
+  "total_net_qty",
+  "total_remaining_qty"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_hui2",
+   "fieldtype": "Section Break",
+   "label": "Customer Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Pet Package Subscription",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Read Only",
+   "label": "Mobile No"
+  },
+  {
+   "fieldname": "email_address",
+   "fieldtype": "Read Only",
+   "label": "Email Address"
+  },
+  {
+   "fieldname": "column_break_liqq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_address",
+   "fieldtype": "Small Text",
+   "label": "Customer Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "subscription_details_section",
+   "fieldtype": "Section Break",
+   "label": "Subscription Details"
+  },
+  {
+   "fieldname": "pet_service",
+   "fieldtype": "Link",
+   "label": "Pet Service",
+   "options": "Pet Service",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_nmjr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subscription_at",
+   "fieldtype": "Date",
+   "label": "Subscription at",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_ucag",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "package_services",
+   "fieldtype": "Table",
+   "label": "Package Services",
+   "options": "Package Service Subscription Details",
+   "reqd": 1
+  },
+  {
+   "fieldname": "additional_discount_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Discount"
+  },
+  {
+   "fieldname": "additional_discount",
+   "fieldtype": "Float",
+   "label": "Additional Discount"
+  },
+  {
+   "fieldname": "column_break_wplo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "additional_discount_as",
+   "fieldtype": "Select",
+   "label": "Additional Discount as",
+   "options": "\nPercent\nFixed Amount"
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_net_amount",
+   "fieldtype": "Currency",
+   "label": "Total Net Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_jngb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Int",
+   "label": "Total Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_extra_qty",
+   "fieldtype": "Int",
+   "label": "Total Extra Qty",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_net_qty",
+   "fieldtype": "Int",
+   "label": "Total Net Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_remaining_qty",
+   "fieldtype": "Int",
+   "label": "Total Remaining Qty",
+   "non_negative": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-15 17:50:36.666959",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Pet Package Subscription",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

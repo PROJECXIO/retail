@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-15 17:44:48.248216",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "service",
+  "service_item",
+  "qty",
+  "working_hours",
+  "rate",
+  "column_break_rqgf",
+  "extra_qty",
+  "discount",
+  "discount_as",
+  "consumed_qty"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service",
+   "options": "Pet Service",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service Item",
+   "options": "Pet Service Item",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "service.working_hours",
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "service_item.rate",
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rate",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rqgf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "extra_qty",
+   "fieldtype": "Int",
+   "label": "Extra Qty",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Float",
+   "label": "Discount",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "discount_as",
+   "fieldtype": "Select",
+   "label": "Discount as",
+   "options": "\nPercent\nFixed Amount"
+  },
+  {
+   "default": "0",
+   "fieldname": "consumed_qty",
+   "fieldtype": "Int",
+   "label": "Consumed Qty",
+   "non_negative": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-15 17:51:10.470807",
+ "modified_by": "Administrator",
+ "module": "Retail",
+ "name": "Package Service Subscription Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
