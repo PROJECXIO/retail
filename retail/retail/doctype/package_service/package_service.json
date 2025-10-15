@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "service",
+  "service_item",
   "qty",
   "working_hours",
   "rate",
@@ -44,7 +45,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "service.total_net_price",
+   "fetch_from": "service_item.rate",
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -52,13 +53,21 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "service_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service Item",
+   "options": "Pet Service Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-14 15:14:55.809102",
+ "modified": "2025-10-15 16:49:42.245061",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service",

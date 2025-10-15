@@ -24,36 +24,11 @@ frappe.ui.form.on("Pet Service", {
             total_net_price += amount;
         });
 
-        if (frm.doc.discount_as == "Percent") {
-            total_net_price =
-                flt(total_net_price) - (flt(total_net_price) * flt(frm.doc.discount)) / 100;
-        } else if (frm.doc.discount_as == "Fixed Amount") {
-            total_net_price = flt(total_net_price) - flt(frm.doc.discount);
-        }
-
         frm.set_value("total_price", total_price);
         frm.refresh_field("total_price");
 
         frm.set_value("total_net_price", total_net_price);
         frm.refresh_field("total_net_price");
-    },
-    validate(frm) {
-        if (
-            frm.doc.item_code &&
-            frm.doc.discount_as == "Percent" &&
-            flt(frm.doc.discount) > 100
-        ) {
-            frappe.throw(__("Discount Percent can not be greater that 100"));
-        }
-        if (
-            frm.doc.item_code &&
-            frm.doc.discount_as == "Fixed Amount" &&
-            flt(frm.doc.discount) > flt(frm.doc.rate)
-        ) {
-            frappe.throw(
-                __("Discount Amount can not be greater that rate {}", [frm.doc.rate])
-            );
-        }
     },
 });
 

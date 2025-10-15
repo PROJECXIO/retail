@@ -9,17 +9,10 @@
   "title",
   "column_break_bwlr",
   "posting_date",
-  "pet_type",
-  "pet_size",
   "package_service_section",
   "package_services",
-  "additional_discount_section",
-  "additional_discount_as",
-  "column_break_pivd",
-  "additional_discount",
   "totals_section",
   "total_package_price",
-  "net_total_package_price",
   "column_break_rnxq",
   "total_package_qty",
   "amended_from"
@@ -65,27 +58,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "additional_discount_section",
-   "fieldtype": "Section Break",
-   "label": "Additional Discount"
-  },
-  {
-   "fieldname": "additional_discount_as",
-   "fieldtype": "Select",
-   "label": "Additional Discount as",
-   "options": "\nPercent\nFixed Amount"
-  },
-  {
-   "fieldname": "column_break_pivd",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "additional_discount",
-   "fieldtype": "Float",
-   "label": "Additional Discount",
-   "precision": "2"
-  },
-  {
    "fieldname": "totals_section",
    "fieldtype": "Section Break",
    "label": "Totals"
@@ -96,14 +68,6 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Total Package Price",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "net_total_package_price",
-   "fieldtype": "Float",
-   "label": "Net Total Package Price",
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
@@ -137,24 +101,12 @@
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 1
-  },
-  {
-   "fieldname": "pet_type",
-   "fieldtype": "Link",
-   "label": "Pet Type",
-   "options": "Pet Type"
-  },
-  {
-   "fieldname": "pet_size",
-   "fieldtype": "Link",
-   "label": "Pet Size",
-   "options": "Pet Size"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-15 10:49:41.280475",
+ "modified": "2025-10-15 17:39:07.620261",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",
