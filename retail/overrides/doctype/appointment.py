@@ -332,6 +332,28 @@ class Appointment(BaseAppointment):
 
     def after_insert(self):
         insert_event_in_google_calendar(self)
+    
+    @frappe.whitelist()
+    def fetch_service_item(self, service, pet_size, pet_type):
+        exists = frappe.db.exists(
+            "Pet Service Item Detail",
+            {"parent": service, "pet_size": pet_size or "", "pet_type": pet_type or ""}
+        )
+        if exists:
+            doc = frappe.get_doc("Pet Service Item Detail", exists)
+            rate = flt(doc.rate)
+            if doc.discount_as == "Percent":
+                rate = rate - (flt(doc.discount) * rate / 100)
+            if doc.discount_as == "Fixed Amount":
+                rate = rate - flt(doc.discount)
+            return {
+                "item": doc.pet_service_item,
+                "rate": rate,
+            }
+        return {
+            "item": None,
+            "rate": 0,
+        }
 
 
 @frappe.whitelist()

@@ -195,8 +195,30 @@ frappe.ui.form.on("Appointment", {
 });
 
 frappe.ui.form.on("Appointment Service", {
-    async pet(frm, cdt, cdn) {
+    pet(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
         row.service = null;
+    },
+    async service(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (row.service) {
+            frappe.call({
+                method: "fetch_service_item",
+                doc: frm.doc,
+                args: {
+                    service: row.service,
+                    pet_type: row.pet_type,
+                    pet_size: row.pet_size,
+                },
+                callback: function(r){
+                    row.service_item = r.message && r.message.item || '';
+                    row.price = r.message && r.message.rate || 0;
+                    frm.refresh_field("custom_appointment_services");
+                },
+                freeze: true,
+            });
+        }else{
+            row.service_item = null;
+        }
     },
 });

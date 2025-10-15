@@ -9,6 +9,7 @@
   "pet",
   "service",
   "working_hours",
+  "service_item",
   "price",
   "pet_type",
   "pet_size"
@@ -40,7 +41,6 @@
    "read_only": 1
   },
   {
-   "fetch_from": "service.total_price",
    "fieldname": "price",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -64,13 +64,21 @@
    "label": "Pet Size",
    "options": "Pet Size",
    "read_only": 1
+  },
+  {
+   "fieldname": "service_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service Item",
+   "options": "Pet Service Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-15 12:06:22.920713",
+ "modified": "2025-10-15 12:46:29.822306",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Appointment Service",
