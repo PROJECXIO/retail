@@ -48,10 +48,10 @@ frappe.views.calendar["Appointment"] = {
 				},
 			});
 		},
-		resourceRender: function(resourceObj, labelTds) {
+		resourceRender: function (resourceObj, labelTds) {
 			// labelTds is a jQuery <td> element for the header
 			const color = resourceObj.color || "#3788d8";
-			labelTds.css('padding-top', '10px');
+			labelTds.css("padding-top", "10px");
 			$(labelTds).append(`
 				<div style="
 							background-color: ${color};
@@ -60,6 +60,20 @@ frappe.views.calendar["Appointment"] = {
 							max-width: 75%;
 							margin: auto;">
 				</div>`);
+		},
+		select: function (startDate, endDate, jsEvent, view, resource) {
+			if (view.name === "month" && endDate - startDate === 86400000) {
+				// detect single day click in month view
+				return;
+			}
+			function get_system_datetime(date) {
+				date._offset = moment(date).tz(frappe.sys_defaults.time_zone)._offset;
+				return frappe.datetime.convert_to_system_tz(moment(date).locale("en"));
+			}
+			var doc = frappe.model.get_new_doc("Appointment");
+			doc.scheduled_time = get_system_datetime(startDate);
+			doc.custom_vehicle = resource && resource.id !== "unassigned" ? resource.id : null;
+			frappe.set_route("Form", "Appointment", doc.name);
 		},
 	},
 };

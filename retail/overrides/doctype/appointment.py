@@ -59,6 +59,10 @@ class Appointment(BaseAppointment):
 
         if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
             frappe.throw(_("Select Google Calendar to which event should be synced."))
+        total_price, total_net_price, total_hours = self.check_discount_values()
+        self.custom_total_amount = total_price
+        self.custom_total_net_amount = total_net_price
+        self.custom_total_working_hours = total_hours
 
     def before_save(self):
         self.set_party_email()
@@ -170,29 +174,37 @@ class Appointment(BaseAppointment):
     def create_invoice_appointment(self, update_ends_time=False, payments_details=[]):
         if self.status != "Open" and self.status != "Completed Not Paid":
             return
-        # validate total payment
-        total_paid_amount = 0
-        for payment in payments_details:
-            print(payment)
 
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = self.party
         invoice.posting_date = getdate()
         invoice.due_date = getdate()
         for service in self.custom_appointment_services:
-            if not service.service:
+            if not service.service or not service.service_item:
                 continue
-            service = frappe.get_doc("Pet Service", service.service)
-            for item in service.service_items:
-                invoice.append(
-                    "items",
-                    {
-                        "item_code": item.item_code,
-                        "uom": item.uom,
-                        "qty": 1,
-                        "rate": item.rate,
-                    },
-                )
+            doc = frappe.get_doc("Pet Service Item", service.service_item)
+            rate = flt(service.price)
+            if flt(service.discount) > 0:
+                if service.discount_as == "Percent":
+                    rate = rate - (flt(service.discount) * rate / 100)
+                elif service.discount_as == "Fixed Amount":
+                    rate = rate - flt(service.discount)
+            item = {
+                "item_code": doc.item,
+                "uom": doc.uom,
+                "qty": 1,
+                "rate": rate,
+            }
+            
+            invoice.append(
+                "items", item,
+            )
+        additional_discount = flt(self.custom_additional_discount)
+        if additional_discount > 0:
+            if self.custom_additional_discount_as == "Fixed Amount":
+                invoice.discount_amount = additional_discount
+            elif self.custom_additional_discount_as == "Percent":
+                invoice.discount_amount = additional_discount 
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
@@ -332,7 +344,34 @@ class Appointment(BaseAppointment):
 
     def after_insert(self):
         insert_event_in_google_calendar(self)
-    
+
+    def check_discount_values(self):
+        if self.custom_additional_discount_as == "Percent" and flt(self.custom_additional_discount) > 100:
+            frappe.throw(_("Discount Percent can not be greater that 100"))
+        total_price = 0
+        total_net_price = 0
+        total_hours = 0
+        for row in self.custom_appointment_services:
+            total_price += flt(row.price)
+            total_hours += flt(row.working_hours)
+            amount = 0
+            if row.discount_as == "Percent":
+                amount = flt(row.price) - (flt(row.price) * flt(row.discount)) / 100
+            elif row.discount_as == "Fixed Amount":
+                amount = flt(row.price) - flt(row.discount)
+            else:
+                amount = flt(row.price)
+            total_net_price += amount
+
+        if self.custom_additional_discount_as == "Fixed Amount" and flt(self.custom_additional_discount) >  flt(total_net_price):
+            frappe.throw(_("Discount Amount can not be greater that total price {}".format(total_net_price)))
+        if self.custom_additional_discount_as == "Percent":
+            total_net_price = flt(total_net_price) - (flt(total_net_price) * flt(self.custom_additional_discount)) / 100
+        elif self.custom_additional_discount_as == "Fixed Amount":
+            total_net_price = flt(total_net_price) - flt(self.custom_additional_discount)
+
+        return total_price, total_net_price, total_hours
+
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
         exists = frappe.db.exists(
@@ -350,6 +389,8 @@ class Appointment(BaseAppointment):
                 "item": doc.pet_service_item,
                 "rate": rate,
             }
+        else:
+            frappe.msgprint(_("No valid item found for the pet"))
         return {
             "item": None,
             "rate": 0,

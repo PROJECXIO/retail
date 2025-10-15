@@ -192,12 +192,62 @@ frappe.ui.form.on("Appointment", {
             __(`${frm.doc.appointment_with} Name`) || __("Party Name")
         );
     },
+    custom_additional_discount_as(frm){
+        frm.trigger("update_total_price");
+    },
+    custom_additional_discount(frm){
+        frm.trigger("update_total_price");
+    },
+    update_total_price(frm) {
+        let total_price = 0;
+        let total_net_price = 0;
+        (frm.doc.custom_appointment_services || []).forEach(row => {
+            total_price += flt(row.price);
+            let amount = 0;
+            if (row.discount_as == "Percent") {
+                amount = flt(row.price) - (flt(row.price) * flt(row.discount)) / 100;
+            } else if (row.discount_as == "Fixed Amount") {
+                amount = flt(row.price) - flt(row.discount);
+            } else {
+                amount = flt(row.price);
+            }
+            total_net_price += amount;
+        });
+
+        if (frm.doc.custom_additional_discount_as == "Percent") {
+            total_net_price =
+                flt(total_net_price) - (flt(total_net_price) * flt(frm.doc.custom_additional_discount)) / 100;
+        } else if (frm.doc.custom_additional_discount_as == "Fixed Amount") {
+            total_net_price = flt(total_net_price) - flt(frm.doc.custom_additional_discount);
+        }
+
+        frm.set_value("custom_total_amount", total_price);
+        frm.refresh_field("custom_total_amount");
+
+        frm.set_value("custom_total_net_amount", total_net_price);
+        frm.refresh_field("custom_total_net_amount");
+    },
 });
 
 frappe.ui.form.on("Appointment Service", {
+    custom_appointment_services_remove(frm, cdt, cdn){
+        frm.trigger("update_total_price");
+    },
     pet(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
         row.service = null;
+        row.service_item = null;
+        row.price = 0;
+        frm.trigger("update_total_price");
+    },
+    price(frm, cdt, cdn){
+        frm.trigger("update_total_price");
+    },
+    discount_as(frm, cdt, cdn){
+        frm.trigger("update_total_price");
+    },
+    discount(frm, cdt, cdn){
+        frm.trigger("update_total_price");
     },
     async service(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
@@ -214,11 +264,13 @@ frappe.ui.form.on("Appointment Service", {
                     row.service_item = r.message && r.message.item || '';
                     row.price = r.message && r.message.rate || 0;
                     frm.refresh_field("custom_appointment_services");
+                    frm.trigger("update_total_price");
                 },
                 freeze: true,
             });
         }else{
             row.service_item = null;
+            frm.trigger("update_total_price");
         }
     },
 });
