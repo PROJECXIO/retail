@@ -133,7 +133,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Packages",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -161,6 +161,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Pet Service Item",
+   "link_count": 0,
+   "link_to": "Pet Service Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Pet Service",
    "link_count": 0,
    "link_to": "Pet Service",
@@ -179,7 +189,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-10-14 15:11:07.931821",
+ "modified": "2025-10-15 11:26:48.399755",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",
