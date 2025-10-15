@@ -1,6 +1,5 @@
 frappe.ui.form.on("Appointment", {
-    refresh(frm) {
-        frm.trigger("set_label");
+    onload(frm) {
         frm.set_query("pet", "custom_appointment_services", function (doc) {
             return {
                 filters: {
@@ -8,6 +7,24 @@ frappe.ui.form.on("Appointment", {
                 },
             };
         });
+        frm.set_query(
+            "service",
+            "custom_appointment_services",
+            function (doc, cdt, cdn) {
+                const row = locals[cdt][cdn];
+                return {
+                    filters: {
+                        pet_type: row.pet_type,
+                        pet_size: row.pet_size,
+                    },
+                    query:
+                        "retail.retail.doctype.pet_service_package.pet_service_package.service_query",
+                };
+            }
+        );
+    },
+    refresh(frm) {
+        frm.trigger("set_label");
         if (frm.doc.docstatus == 1 && frm.doc.status == "Open") {
             frm.add_custom_button(
                 __("Complete Appointment"),
@@ -46,7 +63,9 @@ frappe.ui.form.on("Appointment", {
                                 fieldname: "info_message",
                                 options: `
                                     <div style="padding:16px 0; color:#666;">
-                                        ${__("Are you sure you want to complete the appointment?")}
+                                        ${__(
+                                    "Are you sure you want to complete the appointment?"
+                                )}
                                     </div>
                                 `,
                             },
@@ -82,11 +101,11 @@ frappe.ui.form.on("Appointment", {
                 },
                 __("Action")
             );
-            frm.add_custom_button(__("Close Appointment"), () => {
-                frappe.confirm(
-                        __(
-                            "Are you sure you want to close the appointment?"
-                        ),
+            frm.add_custom_button(
+                __("Close Appointment"),
+                () => {
+                    frappe.confirm(
+                        __("Are you sure you want to close the appointment?"),
                         () => {
                             frappe.call({
                                 method: "close_appointment",
@@ -97,17 +116,19 @@ frappe.ui.form.on("Appointment", {
                             });
                         }
                     );
-            }, __("Action"));
+                },
+                __("Action")
+            );
         }
         if (frm.doc.docstatus == 1 && frm.doc.status == "Closed") {
             frm
                 .add_custom_button(__("Re-Open"), () => {
                     frappe.call({
-                      method: "re_open_appointment",
-                      doc: frm.doc,
-                      callback: function (r) {
-                        frm.reload_doc();
-                      },
+                        method: "re_open_appointment",
+                        doc: frm.doc,
+                        callback: function (r) {
+                            frm.reload_doc();
+                        },
                     });
                 })
                 .addClass("btn-primary")
@@ -148,8 +169,11 @@ frappe.ui.form.on("Appointment", {
                     "primary_address"
                 );
                 primary_address =
-                    primary_address && primary_address.message && primary_address.message.primary_address || "";
-                primary_address = primary_address.replaceAll("<br>", "")
+                    (primary_address &&
+                        primary_address.message &&
+                        primary_address.message.primary_address) ||
+                    "";
+                primary_address = primary_address.replaceAll("<br>", "");
                 await frm.set_value("customer_name", customer_name);
                 await frm.set_value("customer_phone_number", mobile_no);
                 await frm.set_value("custom_address", primary_address);
@@ -167,5 +191,12 @@ frappe.ui.form.on("Appointment", {
             "label",
             __(`${frm.doc.appointment_with} Name`) || __("Party Name")
         );
+    },
+});
+
+frappe.ui.form.on("Appointment Service", {
+    async pet(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        row.service = null;
     },
 });

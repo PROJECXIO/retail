@@ -9,7 +9,9 @@
   "pet",
   "service",
   "working_hours",
-  "price"
+  "price",
+  "pet_type",
+  "pet_size"
  ],
  "fields": [
   {
@@ -46,13 +48,29 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fetch_from": "pet.pet_type",
+   "fieldname": "pet_type",
+   "fieldtype": "Link",
+   "label": "Pet Type",
+   "options": "Pet Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "pet.pet_size",
+   "fieldname": "pet_size",
+   "fieldtype": "Link",
+   "label": "Pet Size",
+   "options": "Pet Size",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-06 11:58:10.036583",
+ "modified": "2025-10-15 12:06:22.920713",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Appointment Service",
