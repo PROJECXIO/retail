@@ -993,6 +993,19 @@
 						}
 					}
 				}
+
+				.frappe-control{
+					margin-top: 20px !important;
+				}
+
+				.control-label{
+					font-weight: bold;
+				}
+
+				.form-control{
+					border: 1px solid #171717;
+					background-color: white;
+				}
 			}
 
 			> .payment-container-right {

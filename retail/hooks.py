@@ -50,19 +50,19 @@ page_js = {
 
 # include js in doctype views
 doctype_js = {
-    "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice.js",
-    "POS Closing Entry" : "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
-    "Item" : "public/js/doctype/item/item.js",
-    "Appointment" : "public/js/doctype/appointment/appointment.js",
-    "Customer" : "public/js/doctype/customer/customer.js",
+    "POS Invoice": "public/js/doctype/pos_invoice/pos_invoice.js",
+    "POS Closing Entry": "public/js/doctype/pos_closing_entry/pos_closing_entry.js",
+    "Item": "public/js/doctype/item/item.js",
+    "Appointment": "public/js/doctype/appointment/appointment.js",
+    "Customer": "public/js/doctype/customer/customer.js",
 }
 doctype_list_js = {
-    "POS Invoice" : "public/js/doctype/pos_invoice/pos_invoice_list.js",
-    "Appointment" : "public/js/doctype/appointment/appointment_list.js",
+    "POS Invoice": "public/js/doctype/pos_invoice/pos_invoice_list.js",
+    "Appointment": "public/js/doctype/appointment/appointment_list.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 doctype_calendar_js = {
-    "Appointment" : "public/js/doctype/appointment/appointment_calendar.js",
+    "Appointment": "public/js/doctype/appointment/appointment_calendar.js",
 }
 
 # Svg Icons
@@ -147,11 +147,11 @@ before_install = "retail.install.before_install"
 # Override standard doctype classes
 
 override_doctype_class = {
-	"POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice",
-	"POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
-	"Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
-	"Appointment": "retail.overrides.doctype.appointment.Appointment",
-	"Appointment Booking Settings": "retail.overrides.doctype.appointment_booking_settings.AppointmentBookingSettings",
+    "POS Invoice": "retail.overrides.doctype.pos_invoice.POSInvoice",
+    "POS Closing Entry": "retail.overrides.doctype.pos_closing_entry.POSClosingEntry",
+    "Sales Invoice": "retail.overrides.doctype.sales_invoice.SalesInvoice",
+    "Appointment": "retail.overrides.doctype.appointment.Appointment",
+    "Appointment Booking Settings": "retail.overrides.doctype.appointment_booking_settings.AppointmentBookingSettings",
 }
 
 # Document Events
@@ -196,8 +196,8 @@ override_doctype_class = {
 # ------------------------------
 #
 # override_whitelisted_methods = {
-    # "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "retail.overrides.whitelist.pos_invoice.get_stock_availability",
-    # "retail.overrides.page.point_of_sale.point_of_sale.get_items": "retail.overrides.whitelist.pos_invoice.get_items",
+# "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "retail.overrides.whitelist.pos_invoice.get_stock_availability",
+# "retail.overrides.page.point_of_sale.point_of_sale.get_items": "retail.overrides.whitelist.pos_invoice.get_items",
 # }
 #
 # each overriding function accepts a `data` argument;
