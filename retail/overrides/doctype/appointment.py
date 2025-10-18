@@ -13,6 +13,7 @@ from frappe.integrations.doctype.google_calendar.google_calendar import (
     format_date_according_to_google_calendar,
 )
 from frappe.query_builder.custom import ConstantColumn
+from frappe.query_builder.functions import Concat
 
 from frappe.utils import (
     get_fullname,
@@ -433,7 +434,8 @@ def get_appointments(
                 "resourceId"
             ),  # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
-            Appointment.custom_subject.as_("subject"),
+            # Appointment.customer_details.as_("subject"),
+            Concat(Appointment.customer_name, ': ', Appointment.customer_phone_number, ' - ', Appointment.custom_subject).as_("subject"),
             Appointment.docstatus,
             Appointment.status,
             Appointment.customer_details.as_("description"),
