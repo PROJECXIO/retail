@@ -147,6 +147,14 @@ frappe.ui.form.on("Appointment", {
             await frm.set_value("custom_address", "");
         } else {
             if (frm.doc.appointment_with == "Customer") {
+                let google_maps_link = await frappe.db.get_value(
+                    "Customer",
+                    frm.doc.party,
+                    "custom_google_maps_link"
+                );
+                google_maps_link =
+                    google_maps_link && google_maps_link.message && google_maps_link.message.custom_google_maps_link;
+
                 let pin_location = await frappe.db.get_value(
                     "Customer",
                     frm.doc.party,
@@ -186,6 +194,7 @@ frappe.ui.form.on("Appointment", {
                 await frm.set_value("customer_phone_number", mobile_no);
                 await frm.set_value("custom_address", primary_address);
                 await frm.set_value("custom_appointment_location", pin_location);
+                await frm.set_value("custom_google_maps_link", google_maps_link);
             }
         }
     },
