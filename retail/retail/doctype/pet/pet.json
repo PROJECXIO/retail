@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "format:PET-{###}",
  "creation": "2025-09-28 14:59:32.541952",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -134,10 +134,11 @@
  "image_field": "pet_image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-28 17:33:04.840468",
+ "modified": "2025-10-18 15:03:21.012081",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
