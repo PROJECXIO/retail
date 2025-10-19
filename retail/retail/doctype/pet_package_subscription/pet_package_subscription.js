@@ -2,6 +2,87 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Pet Package Subscription", {
+    refresh(frm) {
+        frm.trigger("set_label");
+        if (frm.doc.docstatus == 1 && !frm.doc.sales_invoice) {
+            frm.add_custom_button(
+                __("Prepare Invoice"),
+                () => {
+                    const table_fields = [
+                        {
+                            fieldname: "mode_of_payment",
+                            fieldtype: "Link",
+                            in_list_view: 1,
+                            label: __("Mode of Payment"),
+                            options: "Mode of Payment",
+                            reqd: 1,
+                        },
+                        {
+                            fieldname: "paid_amount",
+                            fieldtype: "Currency",
+                            in_list_view: 1,
+                            label: __("Paid Amount"),
+                            options: "company:company_currency",
+                            onchange: function () {
+                                dialog.fields_dict.payments_details.df.data.some((d) => {
+                                    if (d.idx == this.doc.idx) {
+                                        d.paid_amount = this.value;
+                                        dialog.fields_dict.payments_details.grid.refresh();
+                                        return true;
+                                    }
+                                });
+                            },
+                        },
+                    ];
+                    let dialog = new frappe.ui.Dialog({
+                        title: __("Prepare Invoice"),
+                        fields: [
+                            {
+                                fieldtype: "HTML",
+                                fieldname: "info_message",
+                                options: `
+                                    <div style="padding:16px 0; color:#666;">
+                                        ${__(
+                                    "Prepare Invoice, this will create sales invoice?"
+                                )}
+                                    </div>
+                                `,
+                            },
+                            {
+                                label: __("Invoice Due date"),
+                                fieldtype: "Date",
+                                fieldname: "due_date",
+                                default: frappe.datetime.nowdate(),
+                                reqd: 1,
+                            },
+                            {
+                                fieldname: "payments_details",
+                                fieldtype: "Table",
+                                label: __("Customer Payments"),
+                                cannot_add_rows: false,
+                                in_place_edit: true,
+                                data: [],
+                                fields: table_fields,
+                            },
+                        ],
+                        primary_action(data) {
+                            frappe.call({
+                                method: "create_invoice",
+                                doc: frm.doc,
+                                args: data,
+                                callback: function (r) {
+                                    frm.reload_doc();
+                                },
+                            });
+                            dialog.hide();
+                        },
+                        primary_action_label: __("Complete Appointment"),
+                    });
+                    dialog.show();
+                },
+            );
+        }
+    },
     additional_discount_as(frm){
         frm.trigger("update_total_price");
     },

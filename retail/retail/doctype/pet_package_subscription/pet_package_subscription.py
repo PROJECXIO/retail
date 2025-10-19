@@ -4,8 +4,8 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, cint
-
+from frappe.utils import flt, cint, getdate
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
 class PetPackageSubscription(Document):
     def validate(self):
@@ -20,6 +20,61 @@ class PetPackageSubscription(Document):
 
         self.fetch_service_items()
 
+    @frappe.whitelist()
+    def create_invoice(self, due_date=False, payments_details=[]):
+        if self.sales_invoice or self.docstatus != 1:
+            return
+
+        invoice = frappe.new_doc("Sales Invoice")
+        invoice.customer = self.customer
+        invoice.posting_date = self.subscription_at
+        invoice.due_date = due_date or getdate()
+        for service in self.subscription_package_service:
+            if not service.service or not service.service_item:
+                continue
+            doc = frappe.get_doc("Pet Service Item", service.service_item)
+            rate = flt(service.rate)
+            discount_percentage = 0
+            if flt(service.discount) > 0:
+                rate = rate - (rate * flt(service.discount) / 100)
+            item = {
+                "item_code": doc.item,
+                "uom": doc.uom,
+                "qty": service.qty,
+                "rate": rate,
+                "discount_percentage": discount_percentage,
+            }
+
+            invoice.append(
+                "items",
+                item,
+            )
+        additional_discount = flt(self.additional_discount)
+        if additional_discount > 0:
+            if self.additional_discount_as == "Fixed Amount":
+                invoice.discount_amount = additional_discount
+            elif self.additional_discount_as == "Percent":
+                invoice.discount_amount = additional_discount
+        invoice.flags.ignore_permissions = True
+        invoice.save()
+        invoice.submit()
+
+        for payment in payments_details:
+            mode_of_payment = payment.get("mode_of_payment")
+            paid_amount = flt(payment.get("paid_amount"))
+            if not mode_of_payment or paid_amount == 0:
+                continue
+            payment_doc = get_payment_entry(
+                dt="Sales Invoice", dn=invoice.name, ignore_permissions=True
+            )
+            payment_doc.mode_of_payment = mode_of_payment
+            payment_doc.references[0].allocated_amount = paid_amount
+            payment_doc.flags.ignore_permissions = True
+            payment_doc.save()
+            payment_doc.submit()
+        self.db_set("sales_invoice", invoice.name)
+        return "ok"
+    
     def check_discount_values(self):
         total_amount = 0
         total_net_amount = 0
@@ -91,5 +146,6 @@ class PetPackageSubscription(Document):
                         "working_hours": service.working_hours,
                         "rate": rate,
                         "amount": amount,
+                        "discount": flt(row.discount),
                     },
                 )

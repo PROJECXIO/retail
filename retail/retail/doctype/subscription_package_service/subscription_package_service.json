@@ -11,9 +11,10 @@
   "qty",
   "working_hours",
   "rate",
-  "amount",
+  "column_break_rqgf",
   "consumed_qty",
-  "column_break_rqgf"
+  "amount",
+  "discount"
  ],
  "fields": [
   {
@@ -79,13 +80,22 @@
    "label": "Consumed Qty",
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "discount",
+   "fieldtype": "Float",
+   "label": "Discount",
+   "non_negative": 1,
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-19 12:13:01.086929",
+ "modified": "2025-10-19 16:31:31.682452",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Subscription Package Service",
