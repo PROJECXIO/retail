@@ -26,11 +26,19 @@ class PetService(Document):
             amount = 0
             if row.discount_as == "Percent":
                 if flt(row.discount) > 100:
-                    frappe.throw(_("Discount Percent can not be greater than 100 at row {}").format(row.idx))
+                    frappe.throw(
+                        _(
+                            "Discount Percent can not be greater than 100 at row {}"
+                        ).format(row.idx)
+                    )
                 amount = flt(row.rate) - (flt(row.rate) * flt(row.discount)) / 100
             elif row.discount_as == "Fixed Amount":
                 if flt(row.discount) > flt(row.rate):
-                    frappe.throw(_("Discount Amount can not be greater than {} at row {}").format(row.rate, row.idx))
+                    frappe.throw(
+                        _(
+                            "Discount Amount can not be greater than {} at row {}"
+                        ).format(row.rate, row.idx)
+                    )
                 amount = flt(row.rate) - flt(row.discount)
             else:
                 amount = flt(row.rate)

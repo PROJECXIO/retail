@@ -201,16 +201,17 @@ class Appointment(BaseAppointment):
                 "qty": 1,
                 "rate": rate,
             }
-            
+
             invoice.append(
-                "items", item,
+                "items",
+                item,
             )
         additional_discount = flt(self.custom_additional_discount)
         if additional_discount > 0:
             if self.custom_additional_discount_as == "Fixed Amount":
                 invoice.discount_amount = additional_discount
             elif self.custom_additional_discount_as == "Percent":
-                invoice.discount_amount = additional_discount 
+                invoice.discount_amount = additional_discount
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
@@ -352,7 +353,10 @@ class Appointment(BaseAppointment):
         insert_event_in_google_calendar(self)
 
     def check_discount_values(self):
-        if self.custom_additional_discount_as == "Percent" and flt(self.custom_additional_discount) > 100:
+        if (
+            self.custom_additional_discount_as == "Percent"
+            and flt(self.custom_additional_discount) > 100
+        ):
             frappe.throw(_("Discount Percent can not be greater that 100"))
         total_price = 0
         total_net_price = 0
@@ -369,12 +373,25 @@ class Appointment(BaseAppointment):
                 amount = flt(row.price)
             total_net_price += amount
 
-        if self.custom_additional_discount_as == "Fixed Amount" and flt(self.custom_additional_discount) >  flt(total_net_price):
-            frappe.throw(_("Discount Amount can not be greater that total price {}".format(total_net_price)))
+        if self.custom_additional_discount_as == "Fixed Amount" and flt(
+            self.custom_additional_discount
+        ) > flt(total_net_price):
+            frappe.throw(
+                _(
+                    "Discount Amount can not be greater that total price {}".format(
+                        total_net_price
+                    )
+                )
+            )
         if self.custom_additional_discount_as == "Percent":
-            total_net_price = flt(total_net_price) - (flt(total_net_price) * flt(self.custom_additional_discount)) / 100
+            total_net_price = (
+                flt(total_net_price)
+                - (flt(total_net_price) * flt(self.custom_additional_discount)) / 100
+            )
         elif self.custom_additional_discount_as == "Fixed Amount":
-            total_net_price = flt(total_net_price) - flt(self.custom_additional_discount)
+            total_net_price = flt(total_net_price) - flt(
+                self.custom_additional_discount
+            )
 
         return total_price, total_net_price, total_hours
 
@@ -382,7 +399,7 @@ class Appointment(BaseAppointment):
     def fetch_service_item(self, service, pet_size, pet_type):
         exists = frappe.db.exists(
             "Pet Service Item Detail",
-            {"parent": service, "pet_size": pet_size or "", "pet_type": pet_type or ""}
+            {"parent": service, "pet_size": pet_size or "", "pet_type": pet_type or ""},
         )
         if exists:
             doc = frappe.get_doc("Pet Service Item Detail", exists)
@@ -440,7 +457,16 @@ def get_appointments(
             ),  # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
             # Appointment.customer_details.as_("subject"),
-            Concat(Appointment.customer_name, ': ', Appointment.customer_phone_number, ' - ', Appointment.custom_subject, ' ,for ', Appointment.custom_total_pets, ' (Pets)').as_("subject"),
+            Concat(
+                Appointment.customer_name,
+                ": ",
+                Appointment.customer_phone_number,
+                " - ",
+                Appointment.custom_subject,
+                " ,for ",
+                Appointment.custom_total_pets,
+                " (Pets)",
+            ).as_("subject"),
             Appointment.docstatus,
             Appointment.status,
             Appointment.customer_details.as_("description"),

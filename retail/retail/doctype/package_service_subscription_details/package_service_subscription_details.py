@@ -6,4 +6,4 @@ from frappe.model.document import Document
 
 
 class PackageServiceSubscriptionDetails(Document):
-	pass
+    pass
