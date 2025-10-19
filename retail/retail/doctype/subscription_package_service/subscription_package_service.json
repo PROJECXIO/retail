@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-10-09 15:37:04.144694",
+ "creation": "2025-10-19 11:52:56.903866",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -12,30 +12,26 @@
   "working_hours",
   "rate",
   "amount",
+  "consumed_qty",
   "column_break_rqgf"
  ],
  "fields": [
   {
-   "columns": 2,
    "fieldname": "service",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Service",
    "options": "Pet Service",
    "reqd": 1
   },
   {
-   "columns": 1,
-   "fetch_from": "service.working_hours",
-   "fieldname": "working_hours",
-   "fieldtype": "Float",
+   "fieldname": "service_item",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Working Hours",
-   "precision": "2",
-   "read_only": 1
+   "label": "Service Item",
+   "options": "Pet Service Item",
+   "reqd": 1
   },
   {
-   "columns": 1,
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Int",
@@ -45,11 +41,15 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_rqgf",
-   "fieldtype": "Column Break"
+   "fetch_from": "service.working_hours",
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "precision": "2",
+   "read_only": 1
   },
   {
-   "columns": 2,
    "fetch_from": "service_item.rate",
    "fieldname": "rate",
    "fieldtype": "Currency",
@@ -60,16 +60,10 @@
    "reqd": 1
   },
   {
-   "columns": 2,
-   "fieldname": "service_item",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Service Item",
-   "options": "Pet Service Item",
-   "reqd": 1
+   "fieldname": "column_break_rqgf",
+   "fieldtype": "Column Break"
   },
   {
-   "columns": 2,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -77,16 +71,24 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "consumed_qty",
+   "fieldtype": "Int",
+   "label": "Consumed Qty",
+   "non_negative": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-19 12:08:46.617575",
+ "modified": "2025-10-19 12:13:01.086929",
  "modified_by": "Administrator",
  "module": "Retail",
- "name": "Package Service",
+ "name": "Subscription Package Service",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

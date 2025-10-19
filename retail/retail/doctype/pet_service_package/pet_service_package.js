@@ -31,14 +31,12 @@ frappe.ui.form.on("Pet Service Package", {
     async update_total_price(frm) {
         let total_package_price = 0;
         (frm.doc.package_services || []).forEach((row) => {
-            total_package_price += flt(row.rate);
+            total_package_price += flt(row.amount);
         });
 
         await frm.set_value("total_package_price", total_package_price);
         await frm.refresh_field("total_package_price");
 
-        await frm.set_value("net_total_package_price", net_total_package_price);
-        await frm.refresh_field("net_total_package_price");
     },
     update_total_qty(frm) {
         let total_package_qty = 0;
@@ -61,9 +59,14 @@ frappe.ui.form.on("Package Service", {
         row.service_item = null;
     },
     rate(frm, cdt, cdn){
+        const row = locals[cdt][cdn];
+        row.amount = flt(row.rate) * cint(row.qty);
         frm.trigger("update_total_price");
     },
     qty(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        row.amount = flt(row.rate) * cint(row.qty);
         frm.trigger("update_total_qty");
+        frm.trigger("update_total_price");
     },
 });
