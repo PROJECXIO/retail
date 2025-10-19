@@ -109,7 +109,7 @@ class Appointment(BaseAppointment):
                 )
             ).run(as_dict=True)
         if overlapping:
-            frappe.throw(_("This employee already has an overlapping appointment."))
+            frappe.throw(_("This groomer already has an overlapping appointment."))
         if rest_time <= 0:
             return
         gap_start = add_to_date(start_time, minutes=-rest_time)
