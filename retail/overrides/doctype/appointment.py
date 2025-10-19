@@ -65,6 +65,8 @@ class Appointment(BaseAppointment):
         self.custom_total_net_amount = total_net_price
         self.custom_total_working_hours = total_hours
 
+        self.set_total_pets()
+
     def before_save(self):
         self.set_party_email()
 
@@ -80,6 +82,9 @@ class Appointment(BaseAppointment):
         self.sync_communication()
         if self.flags.update_related_appointments:
             self.update_all_related_appointments()
+
+    def set_total_pets(self):
+        self.custom_total_pets = len(self.custom_appointment_services)
 
     def update_all_related_appointments(self):
         if (
@@ -435,7 +440,7 @@ def get_appointments(
             ),  # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
             # Appointment.customer_details.as_("subject"),
-            Concat(Appointment.customer_name, ': ', Appointment.customer_phone_number, ' - ', Appointment.custom_subject).as_("subject"),
+            Concat(Appointment.customer_name, ': ', Appointment.customer_phone_number, ' - ', Appointment.custom_subject, ' ,for ', Appointment.custom_total_pets, ' (Pets)').as_("subject"),
             Appointment.docstatus,
             Appointment.status,
             Appointment.customer_details.as_("description"),
