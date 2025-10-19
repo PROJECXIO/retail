@@ -8,17 +8,14 @@
   "section_break_hui2",
   "customer",
   "customer_name",
+  "column_break_liqq",
   "mobile_no",
   "email_address",
-  "column_break_liqq",
-  "customer_address",
   "amended_from",
   "subscription_details_section",
-  "pet_service",
-  "column_break_nmjr",
   "subscription_at",
-  "section_break_ucag",
   "package_services",
+  "subscription_package_service",
   "additional_discount_section",
   "additional_discount",
   "column_break_wplo",
@@ -29,8 +26,7 @@
   "column_break_jngb",
   "total_qty",
   "total_extra_qty",
-  "total_net_qty",
-  "total_remaining_qty"
+  "total_net_qty"
  ],
  "fields": [
   {
@@ -57,16 +53,19 @@
    "reqd": 1
   },
   {
+   "fetch_from": "customer.customer_name",
    "fieldname": "customer_name",
    "fieldtype": "Read Only",
    "label": "Customer Name"
   },
   {
+   "fetch_from": "customer.mobile_no",
    "fieldname": "mobile_no",
    "fieldtype": "Read Only",
    "label": "Mobile No"
   },
   {
+   "fetch_from": "customer.email_id",
    "fieldname": "email_address",
    "fieldtype": "Read Only",
    "label": "Email Address"
@@ -76,36 +75,16 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "customer_address",
-   "fieldtype": "Small Text",
-   "label": "Customer Address",
-   "read_only": 1
-  },
-  {
    "fieldname": "subscription_details_section",
    "fieldtype": "Section Break",
    "label": "Subscription Details"
   },
   {
-   "fieldname": "pet_service",
-   "fieldtype": "Link",
-   "label": "Pet Service",
-   "options": "Pet Service",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_nmjr",
-   "fieldtype": "Column Break"
-  },
-  {
+   "default": "Today",
    "fieldname": "subscription_at",
    "fieldtype": "Date",
    "label": "Subscription at",
    "reqd": 1
-  },
-  {
-   "fieldname": "section_break_ucag",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "package_services",
@@ -122,7 +101,9 @@
   {
    "fieldname": "additional_discount",
    "fieldtype": "Float",
-   "label": "Additional Discount"
+   "label": "Additional Discount",
+   "non_negative": 1,
+   "precision": "2"
   },
   {
    "fieldname": "column_break_wplo",
@@ -183,10 +164,10 @@
    "reqd": 1
   },
   {
-   "fieldname": "total_remaining_qty",
-   "fieldtype": "Int",
-   "label": "Total Remaining Qty",
-   "non_negative": 1,
+   "fieldname": "subscription_package_service",
+   "fieldtype": "Table",
+   "label": "Subscription Package Service",
+   "options": "Subscription Package Service",
    "read_only": 1
   }
  ],
@@ -194,7 +175,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-15 17:50:36.666959",
+ "modified": "2025-10-19 12:31:29.980747",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",

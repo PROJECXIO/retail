@@ -19,8 +19,9 @@ class PetServicePackage(Document):
 		total_qty = 0
 
 		for row in self.package_services:
+			row.amount = flt(row.rate) * cint(row.qty)
 			total_qty += cint(row.qty)
-			total_price += flt(row.rate)
+			total_price += flt(row.amount)
 			
 		return total_price, total_qty
 
