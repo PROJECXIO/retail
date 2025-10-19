@@ -20,6 +20,12 @@ class PetPackageSubscription(Document):
 
         self.fetch_service_items()
 
+    def before_submit(self):
+        self.status = "Open"
+
+    def on_cancel(self):
+        self.db_set("status", "Cancelled")
+
     @frappe.whitelist()
     def create_invoice(self, due_date=False, payments_details=[]):
         if self.sales_invoice or self.docstatus != 1:
