@@ -65,6 +65,7 @@ class Appointment(BaseAppointment):
         self.custom_total_net_amount = total_net_price
         self.custom_total_working_hours = total_hours
 
+        self.validate_groomer_rest_time()
         self.set_total_pets()
 
     def before_save(self):
@@ -86,6 +87,50 @@ class Appointment(BaseAppointment):
     def set_total_pets(self):
         self.custom_total_pets = len(self.custom_appointment_services)
 
+    def validate_groomer_rest_time(self):
+        if not self.custom_groomer:
+            return
+
+        rest_time = cint(frappe.db.get_single_value("Appointment Booking Settings", "custom_rest_time"))
+        start_time = get_datetime(self.start_time)
+        end_time = get_datetime(self.end_time)
+
+        overlapping = (
+            frappe.qb.from_(Appointment)
+            .select(Appointment.name)
+            .where(
+                (Appointment.employee == self.employee)
+                & (Appointment.name != self.name)
+                & (Appointment.docstatus != 2)
+                & (
+                        (Appointment.start_time < end_time)
+                        & (Appointment.end_time > start_time)
+                    )
+                )
+            ).run(as_dict=True)
+        if overlapping:
+            frappe.throw(_("This employee already has an overlapping appointment."))
+        if rest_time <= 0:
+            return
+        gap_start = add_to_date(start_time, minutes=-rest_time)
+        gap_end = add_to_date(end_time, minutes=rest_time)
+
+        no_gap = (
+            frappe.qb.from_(Appointment)
+            .select(Appointment.name)
+            .where(
+                (Appointment.employee == self.employee)
+                & (Appointment.name != self.name)
+                & (Appointment.docstatus != 2)
+                & (
+                    (Appointment.end_time > gap_start)
+                    & (Appointment.start_time < gap_end)
+                )
+            )
+        ).run(as_dict=True)
+        if no_gap:
+            frappe.throw(_("There must be at least a {}-minute gap between appointments.").format(rest_time))
+        
     def update_all_related_appointments(self):
         if (
             cint(
