@@ -219,6 +219,12 @@ frappe.ui.form.on("Appointment", {
     update_total_price(frm) {
         let total_price = 0;
         let total_net_price = 0;
+        let total_amount_to_pay = 0
+        (frm.doc.custom_appointment_addons || []).forEach(row => {
+            total_price += flt(row.rate);
+            total_net_price += flt(row.rate);
+            total_amount_to_pay += flt(row.rate);
+        });
         (frm.doc.custom_appointment_services || []).forEach(row => {
             total_price += flt(row.price);
             let amount = 0;
@@ -230,13 +236,19 @@ frappe.ui.form.on("Appointment", {
                 amount = flt(row.price);
             }
             total_net_price += amount;
+            if(!row.sales_invoice){
+                total_amount_to_pay += amount;
+            }
         });
 
         if (frm.doc.custom_additional_discount_as == "Percent") {
             total_net_price =
                 flt(total_net_price) - (flt(total_net_price) * flt(frm.doc.custom_additional_discount)) / 100;
+            total_amount_to_pay =
+                flt(total_amount_to_pay) - (flt(total_amount_to_pay) * flt(frm.doc.custom_additional_discount)) / 100;
         } else if (frm.doc.custom_additional_discount_as == "Fixed Amount") {
             total_net_price = flt(total_net_price) - flt(frm.doc.custom_additional_discount);
+            total_amount_to_pay = flt(total_amount_to_pay) - flt(frm.doc.custom_additional_discount);
         }
 
         frm.set_value("custom_total_amount", total_price);
@@ -244,6 +256,9 @@ frappe.ui.form.on("Appointment", {
 
         frm.set_value("custom_total_net_amount", total_net_price);
         frm.refresh_field("custom_total_net_amount");
+
+        frm.set_value("custom_total_amount_to_pay", total_amount_to_pay);
+        frm.refresh_field("custom_total_amount_to_pay");
     },
 });
 
@@ -290,5 +305,17 @@ frappe.ui.form.on("Appointment Service", {
             row.service_item = null;
             frm.trigger("update_total_price");
         }
+    },
+});
+
+frappe.ui.form.on("Pet Appointment Addon", {
+    custom_appointment_addons_remove(frm, cdt, cdn){
+        frm.trigger("update_total_price");
+    },
+    service_addon(frm, cdt, cdn) {
+        frm.trigger("update_total_price");
+    },
+    rate(frm, cdt, cdn){
+        frm.trigger("update_total_price");
     },
 });

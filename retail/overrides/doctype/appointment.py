@@ -60,10 +60,11 @@ class Appointment(BaseAppointment):
 
         if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
             frappe.throw(_("Select Google Calendar to which event should be synced."))
-        total_price, total_net_price, total_hours = self.check_discount_values()
+        total_price, total_net_price, total_hours, total_amount_to_pay = self.check_discount_values()
         self.custom_total_amount = total_price
         self.custom_total_net_amount = total_net_price
         self.custom_total_working_hours = total_hours
+        self.custom_total_amount_to_pay = total_amount_to_pay
 
         self.validate_groomer_rest_time()
         self.set_total_pets()
@@ -72,7 +73,48 @@ class Appointment(BaseAppointment):
         self.set_party_email()
 
     def before_submit(self):
+        self.load_packages_subscriptions()
         self.status = "Open"
+
+    def load_packages_subscriptions(self):
+        # this will load packages if customer is subscribed to any
+        # if qty is more than subscription will check other subscriptions and split items
+        for service in self.custom_appointment_services:
+            if not service.service or not service.service_item:
+                continue
+            PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
+            SubscriptionPackageService = frappe.qb.DocType("Subscription Package Service")
+            query = (
+                frappe.qb.from_(SubscriptionPackageService)
+                .left_join(PetPackageSubscription)
+                .on(PetPackageSubscription.name == SubscriptionPackageService.parent)
+                .select(
+                    PetPackageSubscription.name.as_("subscription"),
+                    PetPackageSubscription.sales_invoice,
+                    SubscriptionPackageService.name.as_("subscription_item"),
+                    SubscriptionPackageService.consumed_qty,
+                    SubscriptionPackageService.qty,
+                )
+                .where(
+                    (PetPackageSubscription.customer == self.party)
+                    & (PetPackageSubscription.docstatus == 1)
+                    & (SubscriptionPackageService.service == service.service)
+                    & (SubscriptionPackageService.service_item == service.service_item)
+                    & (SubscriptionPackageService.consumed_qty < SubscriptionPackageService.qty)
+                )
+            )
+            data = query.run(as_dict=True)
+            for row in data:
+                allowed_qty = row.qty - row.consumed_qty
+                new_row = {}
+                new_row.update(service.as_dict())
+
+                if allowed_qty >= 1:
+                    service.is_from_subscription = 1
+                    service.subscription = row.subscription
+                    service.subscription_item = row.subscription_item
+                    service.sales_invoice = row.sales_invoice
+                    break
 
     def on_cancel(self):
         self.db_set("status", "Cancelled")
@@ -90,46 +132,31 @@ class Appointment(BaseAppointment):
     def validate_groomer_rest_time(self):
         if not self.custom_groomer:
             return
-
         rest_time = cint(frappe.db.get_single_value("Appointment Booking Settings", "custom_rest_time"))
-        start_time = get_datetime(self.start_time)
-        end_time = get_datetime(self.end_time)
+        msg = _("This groomer already has an overlapping appointment.")
+        if rest_time > 0:
+            msg = _("There must be at least a {}-minute gap between appointments.").format(rest_time)
+        start_time = get_datetime(self.scheduled_time)
+        end_time = get_datetime(self.custom_ends_on)
 
+        start_time = add_to_date(start_time, minutes=-rest_time)
+        end_time = add_to_date(end_time, minutes=rest_time)
+        Appointment = frappe.qb.DocType("Appointment")
         overlapping = (
             frappe.qb.from_(Appointment)
             .select(Appointment.name)
             .where(
-                (Appointment.employee == self.employee)
+                (Appointment.custom_groomer == self.custom_groomer)
                 & (Appointment.name != self.name)
                 & (Appointment.docstatus != 2)
                 & (
-                        (Appointment.start_time < end_time)
-                        & (Appointment.end_time > start_time)
+                        (Appointment.scheduled_time < end_time)
+                        & (Appointment.custom_ends_on > start_time)
                     )
                 )
             ).run(as_dict=True)
         if overlapping:
-            frappe.throw(_("This groomer already has an overlapping appointment."))
-        if rest_time <= 0:
-            return
-        gap_start = add_to_date(start_time, minutes=-rest_time)
-        gap_end = add_to_date(end_time, minutes=rest_time)
-
-        no_gap = (
-            frappe.qb.from_(Appointment)
-            .select(Appointment.name)
-            .where(
-                (Appointment.employee == self.employee)
-                & (Appointment.name != self.name)
-                & (Appointment.docstatus != 2)
-                & (
-                    (Appointment.end_time > gap_start)
-                    & (Appointment.start_time < gap_end)
-                )
-            )
-        ).run(as_dict=True)
-        if no_gap:
-            frappe.throw(_("There must be at least a {}-minute gap between appointments.").format(rest_time))
+            frappe.throw(msg)
         
     def update_all_related_appointments(self):
         if (
@@ -223,7 +250,7 @@ class Appointment(BaseAppointment):
 
     @frappe.whitelist()
     def create_invoice_appointment(self, update_ends_time=False, payments_details=[]):
-        if self.status != "Open" and self.status != "Completed Not Paid":
+        if self.status == "Completed" or self.custom_sales_invoice:
             return
 
         invoice = frappe.new_doc("Sales Invoice")
@@ -231,7 +258,7 @@ class Appointment(BaseAppointment):
         invoice.posting_date = getdate()
         invoice.due_date = getdate()
         for service in self.custom_appointment_services:
-            if not service.service or not service.service_item:
+            if not service.service or not service.service_item or (service.is_from_subscription and service.sales_invoice):
                 continue
             doc = frappe.get_doc("Pet Service Item", service.service_item)
             rate = flt(service.price)
@@ -251,6 +278,22 @@ class Appointment(BaseAppointment):
                 "items",
                 item,
             )
+        for addon in self.custom_appointment_addons:
+            if not addon.service_addon or not addon.item:
+                continue
+            rate = flt(addon.rate)
+            item = {
+                "item_code": addon.item,
+                "uom": addon.uom,
+                "qty": 1,
+                "rate": rate,
+            }
+
+            invoice.append(
+                "items",
+                item,
+            )
+
         additional_discount = flt(self.custom_additional_discount)
         if additional_discount > 0:
             if self.custom_additional_discount_as == "Fixed Amount":
@@ -260,6 +303,7 @@ class Appointment(BaseAppointment):
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
+        extra_from_payments = []
 
         for payment in payments_details:
             mode_of_payment = payment.get("mode_of_payment")
@@ -406,6 +450,13 @@ class Appointment(BaseAppointment):
         total_price = 0
         total_net_price = 0
         total_hours = 0
+        total_amount_to_pay = 0
+
+        for row in self.custom_appointment_addons:
+            total_price += flt(row.rate)
+            total_net_price += flt(row.rate)
+            total_amount_to_pay += flt(row.rate)
+
         for row in self.custom_appointment_services:
             total_price += flt(row.price)
             total_hours += flt(row.working_hours)
@@ -417,14 +468,16 @@ class Appointment(BaseAppointment):
             else:
                 amount = flt(row.price)
             total_net_price += amount
+            if not row.sales_invoice:
+                total_amount_to_pay += amount
 
         if self.custom_additional_discount_as == "Fixed Amount" and flt(
             self.custom_additional_discount
-        ) > flt(total_net_price):
+        ) > flt(total_amount_to_pay):
             frappe.throw(
                 _(
                     "Discount Amount can not be greater that total price {}".format(
-                        total_net_price
+                        total_amount_to_pay
                     )
                 )
             )
@@ -433,18 +486,66 @@ class Appointment(BaseAppointment):
                 flt(total_net_price)
                 - (flt(total_net_price) * flt(self.custom_additional_discount)) / 100
             )
+            total_amount_to_pay = (
+                flt(total_amount_to_pay)
+                - (flt(total_amount_to_pay) * flt(self.custom_additional_discount)) / 100
+            )
         elif self.custom_additional_discount_as == "Fixed Amount":
             total_net_price = flt(total_net_price) - flt(
                 self.custom_additional_discount
             )
+            total_amount_to_pay = flt(total_amount_to_pay) - flt(
+                self.custom_additional_discount
+            )
 
-        return total_price, total_net_price, total_hours
+        return total_price, total_net_price, total_hours, total_amount_to_pay
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
+        valid_items_from_type = set()
+        valid_items_from_size = set()
+
+        if pet_type:
+            valid_items_from_type = set(frappe.db.sql(
+            """select {fields} from `tabPet Service Item Type`
+                where docstatus < 2
+                    {fcond}
+            """.format(
+                    **{
+                        "fields": ", ".join(['parent', 'pet_type']),
+                        "fcond": get_filters_cond("Pet Service Item Type", {"pet_type": pet_type}, []),
+                    }
+                ),
+                pluck="parent",
+            ))
+        if pet_size:
+            valid_items_from_size = set(frappe.db.sql(
+            """select {fields} from `tabPet Service Item Size`
+                where docstatus < 2
+                    {fcond}
+            """.format(
+                    **{
+                        "fields": ", ".join(['parent', 'pet_size']),
+                        "fcond": get_filters_cond("Pet Service Item Size", {"pet_size": pet_size}, []),
+                    }
+                ),
+                pluck="parent",
+            ))
+
+        if pet_type and pet_size:
+            valid_items = list(valid_items_from_type & valid_items_from_size)
+        else:
+            valid_items = list(valid_items_from_type | valid_items_from_size)
+        if not valid_items:
+            frappe.msgprint(_("No valid item found for the pet"))
+            return {
+                "item": None,
+                "rate": 0,
+            }
+            
         exists = frappe.db.exists(
             "Pet Service Item Detail",
-            {"parent": service, "pet_size": pet_size or "", "pet_type": pet_type or ""},
+            {"parent": service, "pet_service_item": ["in", valid_items]},
         )
         if exists:
             doc = frappe.get_doc("Pet Service Item Detail", exists)

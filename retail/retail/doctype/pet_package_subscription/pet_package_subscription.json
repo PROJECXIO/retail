@@ -12,6 +12,7 @@
   "column_break_liqq",
   "mobile_no",
   "email_address",
+  "sales_invoice",
   "amended_from",
   "subscription_details_section",
   "subscription_at",
@@ -24,6 +25,7 @@
   "totals_section",
   "total_amount",
   "total_net_amount",
+  "status",
   "column_break_jngb",
   "total_qty",
   "total_extra_qty",
@@ -170,13 +172,29 @@
    "label": "Subscription Package Service",
    "options": "Subscription Package Service",
    "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "no_copy": 1,
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nDraft\nOpen\nClosed\nCompleted\nCancelled",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-19 12:36:40.427872",
+ "modified": "2025-10-19 17:05:29.887089",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",

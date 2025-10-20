@@ -31,32 +31,66 @@ class PetServicePackage(Document):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def service_query(doctype, txt, searchfield, start, page_len, filters):
-    item_fields = get_fields(doctype, ["name", "pet_type", "pet_size"])
-    item_filters = {}
-    item_filters.update(filters)
-    valid_items = frappe.db.sql(
-        """select {fields} from `tabPet Service Item`
-		where docstatus < 2
-			{fcond} {mcond}
-		order by
-			(case when locate(%(_txt)s, name) > 0 then locate(%(_txt)s, name) else 99999 end),
-			idx desc,
-			name
-		limit %(page_len)s offset %(start)s""".format(
-            **{
-                "fields": ", ".join(item_fields),
-                "fcond": get_filters_cond("Pet Service Item", item_filters, []),
-                "mcond": get_match_cond("Pet Service Item"),
-            }
-        ),
-        {
-            "txt": "%%%s%%" % txt,
-            "_txt": txt.replace("%", ""),
-            "start": start,
-            "page_len": page_len,
-        },
-        pluck="name",
-    )
+    pet_type = filters.get("pet_type")
+    pet_size = filters.get("pet_size")
+
+    valid_items_from_type = set()
+    valid_items_from_size = set()
+
+    if pet_type:
+        valid_items_from_type = set(frappe.db.sql(
+        """select {fields} from `tabPet Service Item Type`
+            where docstatus < 2
+                {fcond} {mcond}
+            order by
+                (case when locate(%(_txt)s, parent) > 0 then locate(%(_txt)s, parent) else 99999 end),
+                idx desc,
+                parent
+            limit %(page_len)s offset %(start)s""".format(
+                **{
+                    "fields": ", ".join(['parent', 'pet_type']),
+                    "fcond": get_filters_cond("Pet Service Item Type", {"pet_type": pet_type}, []),
+                    "mcond": get_match_cond("Pet Service Item Type"),
+                }
+            ),
+            {
+                "txt": "%%%s%%" % txt,
+                "_txt": txt.replace("%", ""),
+                "start": start,
+                "page_len": page_len,
+            },
+            pluck="parent",
+        ))
+    if pet_size:
+        valid_items_from_size = set(frappe.db.sql(
+        """select {fields} from `tabPet Service Item Size`
+            where docstatus < 2
+                {fcond} {mcond}
+            order by
+                (case when locate(%(_txt)s, parent) > 0 then locate(%(_txt)s, parent) else 99999 end),
+                idx desc,
+                parent
+            limit %(page_len)s offset %(start)s""".format(
+                **{
+                    "fields": ", ".join(['parent', 'pet_size']),
+                    "fcond": get_filters_cond("Pet Service Item Size", {"pet_size": pet_size}, []),
+                    "mcond": get_match_cond("Pet Service Item Size"),
+                }
+            ),
+            {
+                "txt": "%%%s%%" % txt,
+                "_txt": txt.replace("%", ""),
+                "start": start,
+                "page_len": page_len,
+            },
+            pluck="parent",
+        ))
+
+    if pet_type and pet_size:
+        valid_items = list(valid_items_from_type & valid_items_from_size)
+    else:
+        valid_items = list(valid_items_from_type | valid_items_from_size)
+
     if len(valid_items) == 0:
         return []
     valid_items = ", ".join([f"'{i}'" for i in valid_items])
