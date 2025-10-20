@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, cint, getdate
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
+
 class PetPackageSubscription(Document):
     def validate(self):
         total_amount, total_net_amount, total_qty, total_extra_qty = (
@@ -80,7 +81,7 @@ class PetPackageSubscription(Document):
             payment_doc.submit()
         self.db_set("sales_invoice", invoice.name)
         return "ok"
-    
+
     def check_discount_values(self):
         total_amount = 0
         total_net_amount = 0
