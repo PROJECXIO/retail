@@ -7,6 +7,10 @@ from frappe.utils import flt
 
 
 class PetServiceItem(Document):
+    def validate(self):
+        self.pet_type = ", ".join([t.pet_type for t in self.pet_types])
+        self.pet_size = ", ".join([s.pet_size for s in self.pet_sizes])
+
     def on_update(self):
         self.update_item_price()
 
