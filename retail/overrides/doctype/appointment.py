@@ -890,3 +890,41 @@ def get_attendees(doc):
     attendees = [doc.customer_email]
 
     return attendees
+
+@frappe.whitelist()
+def bulk_submit(doctype, docnames):
+    """Submit multiple documents of the same type in bulk."""
+    submitted = []
+    failed = []
+    try:
+        docnames = frappe.parse_json(docnames)
+    except:
+        docnames = []
+    if not isinstance(docnames, list):
+        docnames = []
+    for name in docnames:
+        try:
+            doc = frappe.get_doc(doctype, name)
+            if doc.docstatus == 0:
+                doc.submit()
+                submitted.append(name)
+            else:
+                frappe.logger().info(f"{name} already submitted or cancelled")
+        except Exception as e:
+            failed.append({"name": name, "error": str(e)})
+            frappe.log_error(frappe.get_traceback(), f"Bulk Submit Failed for {name}")
+
+    frappe.db.commit()
+    return {"submitted": submitted, "failed": failed}
+
+@frappe.whitelist()
+def bulk_submit(doctype, docnames):
+    from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
+    try:
+        docnames = frappe.parse_json(docnames)
+    except:
+        docnames = []
+    if not isinstance(docnames, list):
+        docnames = []
+
+    return submit_cancel_or_update_docs(doctype, docnames)
