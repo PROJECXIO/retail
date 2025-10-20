@@ -11,7 +11,9 @@
   "column_break_xkld",
   "rate",
   "pet_type",
-  "pet_size"
+  "pet_size",
+  "pet_types",
+  "pet_sizes"
  ],
  "fields": [
   {
@@ -66,12 +68,24 @@
    "in_standard_filter": 1,
    "label": "Pet Size",
    "options": "Pet Size"
+  },
+  {
+   "fieldname": "pet_types",
+   "fieldtype": "Table MultiSelect",
+   "label": "Pet Types",
+   "options": "Pet Service Item Type"
+  },
+  {
+   "fieldname": "pet_sizes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Pet Sizes",
+   "options": "Pet Service Item Size"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-15 14:08:09.102134",
+ "modified": "2025-10-20 10:47:28.369150",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Item",
