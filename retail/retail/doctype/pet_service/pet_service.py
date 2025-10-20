@@ -48,5 +48,6 @@ class PetService(Document):
             if row.pet_size:
                 size.add(row.pet_size)
         size = ", ".join(size)
+        type = ", ".join(type)
 
         return total_price, total_net_price, type, size

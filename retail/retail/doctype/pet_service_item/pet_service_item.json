@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:{item}-{pet_type}-{pet_size}",
+ "autoname": "field:item",
  "creation": "2025-10-14 17:13:01.732434",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -22,7 +22,8 @@
    "in_list_view": 1,
    "label": "Item",
    "options": "Item",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fetch_from": "item.stock_uom",
@@ -85,11 +86,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-20 12:00:38.465196",
+ "modified": "2025-10-20 15:34:48.584866",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Item",
- "naming_rule": "Expression",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
