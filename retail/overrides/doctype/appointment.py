@@ -120,11 +120,30 @@ class Appointment(BaseAppointment):
         self.db_set("status", "Cancelled")
         if self.flags.update_related_appointments:
             self.update_all_related_appointments()
+        self.update_consumed_qty(qty=-1)
 
     def on_submit(self):
         self.sync_communication()
         if self.flags.update_related_appointments:
             self.update_all_related_appointments()
+        self.update_consumed_qty(qty=1)
+    
+    def update_consumed_qty(self, qty=1):
+        for service in self.custom_appointment_services:
+            if not service.subscription or not service.subscription_item:
+                continue
+            exists = frappe.db.exists("Subscription Package Service", {"name": service.subscription_item, "parent": service.subscription})
+            if not exists:
+                continue
+            doc = frappe.get_doc("Subscription Package Service", exists)
+            if doc.consumed_qty >= doc.qty:
+                continue
+            consumed_qty = doc.consumed_qty + qty
+            if consumed_qty > doc.qty:
+                continue
+            if consumed_qty < 0:
+                continue
+            doc.db_set("consumed_qty", consumed_qty, update_modified=False)
 
     def set_total_pets(self):
         self.custom_total_pets = len(self.custom_appointment_services)
