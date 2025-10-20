@@ -14,5 +14,28 @@ frappe.listview_settings["Appointment"] = {
       return [__("Draft"), "red", "status,=,Draft"];
     }
   },
-  onload: function (listview) {},
+  onload(listview) {
+        listview.page.add_action_item(__('Submit Selected'), function() {
+            const selected = listview.get_checked_items();
+
+            if (!selected.length) {
+                frappe.msgprint(__('Please select at least one document.'));
+                return;
+            }
+
+            frappe.call({
+                method: 'retail.overrides.doctype.appointment.bulk_submit',
+                args: {
+                    doctype: 'Appointment',
+                    docnames: selected.map(d => d.name),
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.msgprint(`Submitted ${r.message.submitted.length} document(s).`);
+                        listview.refresh();
+                    }
+                }
+            });
+        });
+    }
 };
