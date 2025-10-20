@@ -38,8 +38,9 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
     valid_items_from_size = set()
 
     if pet_type:
-        valid_items_from_type = set(frappe.db.sql(
-        """select {fields} from `tabPet Service Item Type`
+        valid_items_from_type = set(
+            frappe.db.sql(
+                """select {fields} from `tabPet Service Item Type`
             where docstatus < 2
                 {fcond} {mcond}
             order by
@@ -47,23 +48,27 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                 idx desc,
                 parent
             limit %(page_len)s offset %(start)s""".format(
-                **{
-                    "fields": ", ".join(['parent', 'pet_type']),
-                    "fcond": get_filters_cond("Pet Service Item Type", {"pet_type": pet_type}, []),
-                    "mcond": get_match_cond("Pet Service Item Type"),
-                }
-            ),
-            {
-                "txt": "%%%s%%" % txt,
-                "_txt": txt.replace("%", ""),
-                "start": start,
-                "page_len": page_len,
-            },
-            pluck="parent",
-        ))
+                    **{
+                        "fields": ", ".join(["parent", "pet_type"]),
+                        "fcond": get_filters_cond(
+                            "Pet Service Item Type", {"pet_type": pet_type}, []
+                        ),
+                        "mcond": get_match_cond("Pet Service Item Type"),
+                    }
+                ),
+                {
+                    "txt": "%%%s%%" % txt,
+                    "_txt": txt.replace("%", ""),
+                    "start": start,
+                    "page_len": page_len,
+                },
+                pluck="parent",
+            )
+        )
     if pet_size:
-        valid_items_from_size = set(frappe.db.sql(
-        """select {fields} from `tabPet Service Item Size`
+        valid_items_from_size = set(
+            frappe.db.sql(
+                """select {fields} from `tabPet Service Item Size`
             where docstatus < 2
                 {fcond} {mcond}
             order by
@@ -71,20 +76,23 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                 idx desc,
                 parent
             limit %(page_len)s offset %(start)s""".format(
-                **{
-                    "fields": ", ".join(['parent', 'pet_size']),
-                    "fcond": get_filters_cond("Pet Service Item Size", {"pet_size": pet_size}, []),
-                    "mcond": get_match_cond("Pet Service Item Size"),
-                }
-            ),
-            {
-                "txt": "%%%s%%" % txt,
-                "_txt": txt.replace("%", ""),
-                "start": start,
-                "page_len": page_len,
-            },
-            pluck="parent",
-        ))
+                    **{
+                        "fields": ", ".join(["parent", "pet_size"]),
+                        "fcond": get_filters_cond(
+                            "Pet Service Item Size", {"pet_size": pet_size}, []
+                        ),
+                        "mcond": get_match_cond("Pet Service Item Size"),
+                    }
+                ),
+                {
+                    "txt": "%%%s%%" % txt,
+                    "_txt": txt.replace("%", ""),
+                    "start": start,
+                    "page_len": page_len,
+                },
+                pluck="parent",
+            )
+        )
 
     if pet_type and pet_size:
         valid_items = list(valid_items_from_type & valid_items_from_size)
