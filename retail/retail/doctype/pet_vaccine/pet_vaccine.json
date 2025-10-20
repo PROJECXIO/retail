@@ -12,9 +12,9 @@
  "fields": [
   {
    "fieldname": "vaccine",
-   "fieldtype": "Attach",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Vaccine",
+   "label": "Vaccine Name",
    "reqd": 1
   },
   {
@@ -29,7 +29,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-28 17:30:34.681819",
+ "modified": "2025-10-20 17:08:26.961258",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Vaccine",
