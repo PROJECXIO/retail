@@ -16,6 +16,7 @@
   "sex",
   "date_of_birth",
   "pet_vaccinations_log_section",
+  "pet_passport",
   "pet_vaccinations",
   "last_vaccine_exp_date",
   "owner_details_section",
@@ -128,13 +129,18 @@
    "fieldtype": "Date",
    "label": "Last Vaccine Expiration Date",
    "read_only": 1
+  },
+  {
+   "fieldname": "pet_passport",
+   "fieldtype": "Attach",
+   "label": "Pet Passport"
   }
  ],
  "grid_page_length": 50,
  "image_field": "pet_image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-18 15:03:21.012081",
+ "modified": "2025-10-20 17:13:35.941429",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet",
