@@ -650,17 +650,11 @@ def get_appointments(
                 "resourceId"
             ),  # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
-            # Appointment.customer_details.as_("subject"),
-            Concat(
-                Appointment.customer_name,
-                ": ",
-                Appointment.customer_phone_number,
-                " - ",
-                Appointment.custom_subject,
-                " ,for ",
-                Appointment.custom_total_pets,
-                " (Pets)",
-            ).as_("subject"),
+            Appointment.custom_area,
+            Appointment.customer_name,
+            Appointment.customer_phone_number,
+            Appointment.custom_subject,
+            Appointment.custom_total_pets,
             Appointment.docstatus,
             Appointment.status,
             Appointment.customer_details.as_("description"),
@@ -688,6 +682,28 @@ def get_appointments(
         query = query.where(Appointment.custom_send_reminder == 1)
 
     appointments = query.run(as_dict=True)
+    result = []
+    for appointment in appointments:
+        subject = ""
+        area = appointment.custom_area or ""
+        customer_name = appointment.customer_name or ""
+        if area:
+            subject = f"{customer_name} in ({area})"
+        else:
+            subject = customer_name
+        phone_number = appointment.customer_phone_number or ""
+        if phone_number:
+            subject += f" : {phone_number}"
+        subject1 = appointment.custom_subject or ""
+        if subject1:
+            subject += f" - {subject1}"
+        total_pets = cint(appointment.custom_total_pets or "")
+        if total_pets:
+            subject += f" ,for {total_pets} (Pets)"
+        appointment.update({
+            "subject": subject,
+        })
+
     return appointments
 
 
