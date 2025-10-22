@@ -13,7 +13,6 @@ from frappe.integrations.doctype.google_calendar.google_calendar import (
     format_date_according_to_google_calendar,
 )
 from frappe.query_builder.custom import ConstantColumn
-from frappe.query_builder.functions import Concat
 
 from frappe.utils import (
     get_fullname,
@@ -342,7 +341,6 @@ class Appointment(BaseAppointment):
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
-        extra_from_payments = []
 
         for payment in payments_details:
             mode_of_payment = payment.get("mode_of_payment")
@@ -442,13 +440,13 @@ class Appointment(BaseAppointment):
                 ):
                     self.create_communication(participant)
 
-    def create_communication(self, participant: "EventParticipants"):
+    def create_communication(self, participant):
         communication = frappe.new_doc("Communication")
         self.update_communication(participant, communication)
         self.communication = communication.name
 
     def update_communication(
-        self, participant: "EventParticipants", communication: "Communication"
+        self, participant, communication,
     ):
         communication.communication_medium = "Event"
         communication.subject = self.custom_subject
@@ -682,7 +680,6 @@ def get_appointments(
         query = query.where(Appointment.custom_send_reminder == 1)
 
     appointments = query.run(as_dict=True)
-    result = []
     for appointment in appointments:
         subject = ""
         area = appointment.custom_area or ""
@@ -909,36 +906,10 @@ def get_attendees(doc):
 
 @frappe.whitelist()
 def bulk_submit(doctype, docnames):
-    """Submit multiple documents of the same type in bulk."""
-    submitted = []
-    failed = []
-    try:
-        docnames = frappe.parse_json(docnames)
-    except:
-        docnames = []
-    if not isinstance(docnames, list):
-        docnames = []
-    for name in docnames:
-        try:
-            doc = frappe.get_doc(doctype, name)
-            if doc.docstatus == 0:
-                doc.submit()
-                submitted.append(name)
-            else:
-                frappe.logger().info(f"{name} already submitted or cancelled")
-        except Exception as e:
-            failed.append({"name": name, "error": str(e)})
-            frappe.log_error(frappe.get_traceback(), f"Bulk Submit Failed for {name}")
-
-    frappe.db.commit()
-    return {"submitted": submitted, "failed": failed}
-
-@frappe.whitelist()
-def bulk_submit(doctype, docnames):
     from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
     try:
         docnames = frappe.parse_json(docnames)
-    except:
+    except:  # noqa: E722
         docnames = []
     if not isinstance(docnames, list):
         docnames = []
