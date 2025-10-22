@@ -51,7 +51,7 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                     **{
                         "fields": ", ".join(["parent", "pet_type"]),
                         "fcond": get_filters_cond(
-                            "Pet Service Item Type", {"pet_type": pet_type}, []
+                            "Pet Service Item Type", {"pet_type": pet_type}, [], ignore_permissions=True,
                         ),
                         "mcond": get_match_cond("Pet Service Item Type"),
                     }
@@ -65,6 +65,7 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                 pluck="parent",
             )
         )
+
     if pet_size:
         valid_items_from_size = set(
             frappe.db.sql(
@@ -79,7 +80,7 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                     **{
                         "fields": ", ".join(["parent", "pet_size"]),
                         "fcond": get_filters_cond(
-                            "Pet Service Item Size", {"pet_size": pet_size}, []
+                            "Pet Service Item Size", {"pet_size": pet_size}, [], ignore_permissions=True,
                         ),
                         "mcond": get_match_cond("Pet Service Item Size"),
                     }
@@ -96,6 +97,9 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
 
     if pet_type and pet_size:
         valid_items = list(valid_items_from_type & valid_items_from_size)
+        print(valid_items_from_type)
+        print(valid_items_from_size)
+
     else:
         valid_items = list(valid_items_from_type | valid_items_from_size)
 
@@ -166,7 +170,7 @@ def service_item_query(doctype, txt, searchfield, start, page_len, filters):
 		limit %(page_len)s offset %(start)s""".format(
             **{
                 "fields": ", ".join(item_fields),
-                "fcond": get_filters_cond("Pet Service Item Detail", item_filters, []),
+                "fcond": get_filters_cond("Pet Service Item Detail", item_filters, [], ignore_permissions=True),
                 "mcond": get_match_cond("Pet Service Item Detail"),
             }
         ),

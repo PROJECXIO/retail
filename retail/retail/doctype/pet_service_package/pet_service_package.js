@@ -3,15 +3,6 @@
 
 frappe.ui.form.on("Pet Service Package", {
     refresh(frm){
-        frm.set_query("service", "package_services", function(doc){
-            return {
-                query: "retail.retail.doctype.pet_service_package.pet_service_package.service_query",
-				filters: {
-					pet_type: doc.pet_type,
-					pet_size: doc.pet_size,
-				},
-            }
-        });
         frm.set_query("service_item", "package_services", function(doc, cdt, cdn){
             const row = locals[cdt][cdn];
             return {
@@ -69,4 +60,5 @@ frappe.ui.form.on("Package Service", {
         frm.trigger("update_total_qty");
         frm.trigger("update_total_price");
     },
+
 });
