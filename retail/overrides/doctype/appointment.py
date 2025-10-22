@@ -540,48 +540,53 @@ class Appointment(BaseAppointment):
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
-        valid_items_from_type = set()
-        valid_items_from_size = set()
-
-        if pet_type:
-            valid_items_from_type = set(
+        valid_items_both = set()
+        valid_items_type_only = set()
+        valid_items_size_only = set()
+        
+        if pet_type and pet_size:
+            valid_items_both = set(
                 frappe.db.sql(
-                    """select {fields} from `tabPet Service Item Type`
-                where docstatus < 2
-                    {fcond}
-            """.format(
-                        **{
-                            "fields": ", ".join(["parent", "pet_type"]),
-                            "fcond": get_filters_cond(
-                                "Pet Service Item Type", {"pet_type": pet_type}, []
-                            ),
-                        }
-                    ),
+                    """
+                    SELECT DISTINCT t1.parent
+                    FROM `tabPet Service Item Type` t1
+                    INNER JOIN `tabPet Service Item Size` t2 ON t1.parent = t2.parent
+                    WHERE t1.pet_type = %(pet_type)s
+                    AND t2.pet_size = %(pet_size)s
+                    """,
+                    {"pet_type": pet_type, "pet_size": pet_size},
+                    pluck="parent",
+                )
+            )
+        if pet_type:
+            valid_items_type_only = set(
+                frappe.db.sql(
+                    """
+                    SELECT DISTINCT t1.parent
+                    FROM `tabPet Service Item Type` t1
+                    LEFT JOIN `tabPet Service Item Size` t2 ON t1.parent = t2.parent
+                    WHERE t1.pet_type = %(pet_type)s
+                    AND (t2.pet_size IS NULL OR t2.pet_size = '')
+                    """,
+                    {"pet_type": pet_type},
                     pluck="parent",
                 )
             )
         if pet_size:
-            valid_items_from_size = set(
+            valid_items_size_only = set(
                 frappe.db.sql(
-                    """select {fields} from `tabPet Service Item Size`
-                where docstatus < 2
-                    {fcond}
-            """.format(
-                        **{
-                            "fields": ", ".join(["parent", "pet_size"]),
-                            "fcond": get_filters_cond(
-                                "Pet Service Item Size", {"pet_size": pet_size}, []
-                            ),
-                        }
-                    ),
+                    """
+                    SELECT DISTINCT t2.parent
+                    FROM `tabPet Service Item Size` t2
+                    LEFT JOIN `tabPet Service Item Type` t1 ON t1.parent = t2.parent
+                    WHERE t2.pet_size = %(pet_size)s
+                    AND (t1.pet_type IS NULL OR t1.pet_type = '')
+                    """,
+                    {"pet_size": pet_size},
                     pluck="parent",
                 )
             )
-
-        if pet_type and pet_size:
-            valid_items = list(valid_items_from_type & valid_items_from_size)
-        else:
-            valid_items = list(valid_items_from_type | valid_items_from_size)
+        valid_items = valid_items_both | valid_items_type_only | valid_items_size_only
         if not valid_items:
             frappe.msgprint(_("No valid item found for the pet"))
             return {

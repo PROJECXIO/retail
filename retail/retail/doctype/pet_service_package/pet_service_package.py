@@ -34,75 +34,54 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
     pet_type = filters.get("pet_type")
     pet_size = filters.get("pet_size")
 
-    valid_items_from_type = set()
-    valid_items_from_size = set()
-
-    if pet_type:
-        valid_items_from_type = set(
-            frappe.db.sql(
-                """select {fields} from `tabPet Service Item Type`
-            where docstatus < 2
-                {fcond} {mcond}
-            order by
-                (case when locate(%(_txt)s, parent) > 0 then locate(%(_txt)s, parent) else 99999 end),
-                idx desc,
-                parent
-            limit %(page_len)s offset %(start)s""".format(
-                    **{
-                        "fields": ", ".join(["parent", "pet_type"]),
-                        "fcond": get_filters_cond(
-                            "Pet Service Item Type", {"pet_type": pet_type}, [], ignore_permissions=True,
-                        ),
-                        "mcond": get_match_cond("Pet Service Item Type"),
-                    }
-                ),
-                {
-                    "txt": "%%%s%%" % txt,
-                    "_txt": txt.replace("%", ""),
-                    "start": start,
-                    "page_len": page_len,
-                },
-                pluck="parent",
-            )
-        )
-
-    if pet_size:
-        valid_items_from_size = set(
-            frappe.db.sql(
-                """select {fields} from `tabPet Service Item Size`
-            where docstatus < 2
-                {fcond} {mcond}
-            order by
-                (case when locate(%(_txt)s, parent) > 0 then locate(%(_txt)s, parent) else 99999 end),
-                idx desc,
-                parent
-            limit %(page_len)s offset %(start)s""".format(
-                    **{
-                        "fields": ", ".join(["parent", "pet_size"]),
-                        "fcond": get_filters_cond(
-                            "Pet Service Item Size", {"pet_size": pet_size}, [], ignore_permissions=True,
-                        ),
-                        "mcond": get_match_cond("Pet Service Item Size"),
-                    }
-                ),
-                {
-                    "txt": "%%%s%%" % txt,
-                    "_txt": txt.replace("%", ""),
-                    "start": start,
-                    "page_len": page_len,
-                },
-                pluck="parent",
-            )
-        )
-
+    valid_items_both = set()
+    valid_items_type_only = set()
+    valid_items_size_only = set()
+    
     if pet_type and pet_size:
-        valid_items = list(valid_items_from_type & valid_items_from_size)
-        print(valid_items_from_type)
-        print(valid_items_from_size)
-
-    else:
-        valid_items = list(valid_items_from_type | valid_items_from_size)
-
+        valid_items_both = set(
+            frappe.db.sql(
+                """
+                SELECT DISTINCT t1.parent
+                FROM `tabPet Service Item Type` t1
+                INNER JOIN `tabPet Service Item Size` t2 ON t1.parent = t2.parent
+                WHERE t1.pet_type = %(pet_type)s
+                AND t2.pet_size = %(pet_size)s
+                """,
+                {"pet_type": pet_type, "pet_size": pet_size},
+                pluck="parent",
+            )
+        )
+    if pet_type:
+        valid_items_type_only = set(
+            frappe.db.sql(
+                """
+                SELECT DISTINCT t1.parent
+                FROM `tabPet Service Item Type` t1
+                LEFT JOIN `tabPet Service Item Size` t2 ON t1.parent = t2.parent
+                WHERE t1.pet_type = %(pet_type)s
+                AND (t2.pet_size IS NULL OR t2.pet_size = '')
+                """,
+                {"pet_type": pet_type},
+                pluck="parent",
+            )
+        )
+    if pet_size:
+        valid_items_size_only = set(
+            frappe.db.sql(
+                """
+                SELECT DISTINCT t2.parent
+                FROM `tabPet Service Item Size` t2
+                LEFT JOIN `tabPet Service Item Type` t1 ON t1.parent = t2.parent
+                WHERE t2.pet_size = %(pet_size)s
+                AND (t1.pet_type IS NULL OR t1.pet_type = '')
+                """,
+                {"pet_size": pet_size},
+                pluck="parent",
+            )
+        )
+    
+    valid_items = valid_items_both | valid_items_type_only | valid_items_size_only
     if len(valid_items) == 0:
         return []
     valid_items = ", ".join([f"'{i}'" for i in valid_items])
@@ -110,14 +89,13 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
         "SELECT DISTINCT(parent) FROM `tabPet Service Item Detail` WHERE pet_service_item IN ({})".format(
             valid_items
         ),
-        pluck="name",
+        pluck="parent",
     )
     if len(valid_services) == 0:
         return []
 
     doctype = "Pet Service"
     conditions = []
-    fields = get_fields(doctype, ["name", "total_net_price"])
     filters = {"name": ["in", valid_services]}
     return frappe.db.sql(
         """select name, CONCAT('Rate ', ROUND(total_net_price, 3)) from `tabPet Service`
@@ -131,7 +109,6 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
 			name
 		limit %(page_len)s offset %(start)s""".format(
             **{
-                "fields": ", ".join(fields),
                 "key": searchfield,
                 "fcond": get_filters_cond(doctype, filters, conditions),
                 "mcond": get_match_cond(doctype),
