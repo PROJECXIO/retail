@@ -1,5 +1,11 @@
 frappe.listview_settings["Appointment"] = {
-  refresh: function(listview) { $(".layout-side-section").hide(); },
+  refresh: function(listview) {
+    $(".layout-side-section").hide();
+    $("body .container").css({
+      width: "90%",
+      "max-width": "100%",
+    });
+  },
   add_fields: ["status", "order_type"],
   get_indicator: function (doc) {
     if (doc.status === "Closed") {

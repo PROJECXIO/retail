@@ -61,6 +61,13 @@ frappe.views.calendar["Appointment"] = {
 							margin: auto;">
 				</div>`);
 		},
+		eventAfterAllRender: function(){
+			$("body .container").css({
+				width: "90%",
+				"max-width": "100%",
+			});
+			$(".footnote-area").hide();
+		},
 		select: function (startDate, endDate, jsEvent, view, resource) {
 			if (view.name === "month" && endDate - startDate === 86400000) {
 				// detect single day click in month view
