@@ -1,9 +1,3 @@
-console.log(frappe.utils.map_defaults.center)
-console.log(frappe.utils.map_defaults.center)
-console.log(frappe.utils.map_defaults.center)
-console.log(frappe.utils.map_defaults.center)
-console.log(frappe.utils.map_defaults.center)
-console.log(frappe.utils.map_defaults.center)
 Object.assign(frappe.utils, {
     map_defaults: {
 		center: [25.2048, 55.2708],
