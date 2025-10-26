@@ -1,7 +1,6 @@
 frappe.ui.form.on("Customer", {
     async onload(frm){
         const pets = await frappe.db.get_list("Pet", { filters: {"customer": frm.doc.name}, fields: ["*"] }) || [];
-        console.log(pets);
         const pets_profile = pets.map(pet => {
             let color = "red";
             if(pet.last_vaccine_exp_date){
