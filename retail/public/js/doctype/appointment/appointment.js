@@ -153,7 +153,9 @@ frappe.ui.form.on("Appointment", {
                     "custom_google_maps_link"
                 );
                 google_maps_link =
-                    google_maps_link && google_maps_link.message && google_maps_link.message.custom_google_maps_link;
+                    google_maps_link &&
+                    google_maps_link.message &&
+                    google_maps_link.message.custom_google_maps_link;
 
                 let pin_location = await frappe.db.get_value(
                     "Customer",
@@ -161,7 +163,9 @@ frappe.ui.form.on("Appointment", {
                     "custom_pin_location"
                 );
                 pin_location =
-                    pin_location && pin_location.message && pin_location.message.custom_pin_location;
+                    pin_location &&
+                    pin_location.message &&
+                    pin_location.message.custom_pin_location;
 
                 let mobile_no = await frappe.db.get_value(
                     "Customer",
@@ -185,11 +189,9 @@ frappe.ui.form.on("Appointment", {
                     "custom_address_line"
                 );
                 primary_address =
-                    (primary_address &&
-                        primary_address.message &&
-                        primary_address.message.primary_address) ||
-                    "";
-                primary_address = primary_address.replaceAll("<br>", "");
+                    primary_address &&
+                    primary_address.message &&
+                    primary_address.message.custom_address_line;
                 await frm.set_value("customer_name", customer_name);
                 await frm.set_value("customer_phone_number", mobile_no);
                 await frm.set_value("custom_address", primary_address);
@@ -210,22 +212,23 @@ frappe.ui.form.on("Appointment", {
             __(`${frm.doc.appointment_with} Name`) || __("Party Name")
         );
     },
-    custom_additional_discount_as(frm){
+    custom_additional_discount_as(frm) {
         frm.trigger("update_total_price");
     },
-    custom_additional_discount(frm){
+    custom_additional_discount(frm) {
         frm.trigger("update_total_price");
     },
     update_total_price(frm) {
         let total_price = 0;
         let total_net_price = 0;
-        let total_amount_to_pay = 0
-        (frm.doc.custom_appointment_addons || []).forEach(row => {
+        let total_amount_to_pay = 0(
+            frm.doc.custom_appointment_addons || []
+        ).forEach((row) => {
             total_price += flt(row.rate);
             total_net_price += flt(row.rate);
             total_amount_to_pay += flt(row.rate);
         });
-        (frm.doc.custom_appointment_services || []).forEach(row => {
+        (frm.doc.custom_appointment_services || []).forEach((row) => {
             total_price += flt(row.price);
             let amount = 0;
             if (row.discount_as == "Percent") {
@@ -236,19 +239,24 @@ frappe.ui.form.on("Appointment", {
                 amount = flt(row.price);
             }
             total_net_price += amount;
-            if(!row.sales_invoice){
+            if (!row.sales_invoice) {
                 total_amount_to_pay += amount;
             }
         });
 
         if (frm.doc.custom_additional_discount_as == "Percent") {
             total_net_price =
-                flt(total_net_price) - (flt(total_net_price) * flt(frm.doc.custom_additional_discount)) / 100;
+                flt(total_net_price) -
+                (flt(total_net_price) * flt(frm.doc.custom_additional_discount)) / 100;
             total_amount_to_pay =
-                flt(total_amount_to_pay) - (flt(total_amount_to_pay) * flt(frm.doc.custom_additional_discount)) / 100;
+                flt(total_amount_to_pay) -
+                (flt(total_amount_to_pay) * flt(frm.doc.custom_additional_discount)) /
+                100;
         } else if (frm.doc.custom_additional_discount_as == "Fixed Amount") {
-            total_net_price = flt(total_net_price) - flt(frm.doc.custom_additional_discount);
-            total_amount_to_pay = flt(total_amount_to_pay) - flt(frm.doc.custom_additional_discount);
+            total_net_price =
+                flt(total_net_price) - flt(frm.doc.custom_additional_discount);
+            total_amount_to_pay =
+                flt(total_amount_to_pay) - flt(frm.doc.custom_additional_discount);
         }
 
         frm.set_value("custom_total_amount", total_price);
@@ -263,7 +271,7 @@ frappe.ui.form.on("Appointment", {
 });
 
 frappe.ui.form.on("Appointment Service", {
-    custom_appointment_services_remove(frm, cdt, cdn){
+    custom_appointment_services_remove(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
     pet(frm, cdt, cdn) {
@@ -273,13 +281,13 @@ frappe.ui.form.on("Appointment Service", {
         row.price = 0;
         frm.trigger("update_total_price");
     },
-    price(frm, cdt, cdn){
+    price(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
-    discount_as(frm, cdt, cdn){
+    discount_as(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
-    discount(frm, cdt, cdn){
+    discount(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
     async service(frm, cdt, cdn) {
@@ -293,15 +301,15 @@ frappe.ui.form.on("Appointment Service", {
                     pet_type: row.pet_type,
                     pet_size: row.pet_size,
                 },
-                callback: function(r){
-                    row.service_item = r.message && r.message.item || '';
-                    row.price = r.message && r.message.rate || 0;
+                callback: function (r) {
+                    row.service_item = (r.message && r.message.item) || "";
+                    row.price = (r.message && r.message.rate) || 0;
                     frm.refresh_field("custom_appointment_services");
                     frm.trigger("update_total_price");
                 },
                 freeze: true,
             });
-        }else{
+        } else {
             row.service_item = null;
             frm.trigger("update_total_price");
         }
@@ -309,13 +317,13 @@ frappe.ui.form.on("Appointment Service", {
 });
 
 frappe.ui.form.on("Pet Appointment Addon", {
-    custom_appointment_addons_remove(frm, cdt, cdn){
+    custom_appointment_addons_remove(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
     service_addon(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
-    rate(frm, cdt, cdn){
+    rate(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
 });
