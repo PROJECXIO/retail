@@ -182,7 +182,7 @@ frappe.ui.form.on("Appointment", {
                 let primary_address = await frappe.db.get_value(
                     "Customer",
                     frm.doc.party,
-                    "primary_address"
+                    "custom_address_line"
                 );
                 primary_address =
                     (primary_address &&
