@@ -633,17 +633,17 @@ def get_appointments(
     if "`tabAppointment Participants`" in filter_condition:
         tables.append("`tabAppointment Participants`")
     Appointment = frappe.qb.DocType("Appointment")
-    DocShare = frappe.qb.DocType("DocShare")
+    # DocShare = frappe.qb.DocType("DocShare")
 
-    share_query = ExistsCriterion(
-        frappe.qb.from_(DocShare)
-        .select(1)
-        .where(
-            (DocShare.share_doctype == "Appointment")
-            & (DocShare.share_name == Appointment.name)
-            & (DocShare.user == user)
-        )
-    )
+    # share_query = ExistsCriterion(
+    #     frappe.qb.from_(DocShare)
+    #     .select(1)
+    #     .where(
+    #         (DocShare.share_doctype == "Appointment")
+    #         & (DocShare.share_name == Appointment.name)
+    #         & (DocShare.user == user)
+    #     )
+    # )
     query = (
         frappe.qb.from_(Appointment)
         .select(
@@ -678,7 +678,7 @@ def get_appointments(
                     & (functions.Date(Appointment.custom_ends_on) >= end)
                 )
             )
-            & ((Appointment.owner == user) | share_query)
+            # & ((Appointment.owner == user) | share_query)
         )
     )
     if for_reminder:
