@@ -135,6 +135,22 @@ frappe.ui.form.on("Appointment", {
                 .removeClass("btn-default");
         }
     },
+    custom_vehicle(frm){
+        frappe.call({
+            method: 'set_vehicle_employees',
+            doc: frm.doc,
+            args:{
+                vehicle: frm.doc.custom_vehicle || null,
+            },
+            callback: function(r){
+                frm.clear_table("custom_vehicle_assignment_employees");
+                (r.message || []).forEach(v => {
+                    frm.add_child("custom_vehicle_assignment_employees", v);
+                });
+                frm.refresh_field("custom_vehicle_assignment_employees");
+            }
+        })
+    },
     appointment_with(frm) {
         frm.trigger("set_label");
         frm.set_value("party", "");

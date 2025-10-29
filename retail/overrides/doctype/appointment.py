@@ -133,6 +133,42 @@ class Appointment(BaseAppointment):
         if self.flags.update_related_appointments:
             self.update_all_related_appointments()
         self.update_consumed_qty(qty=1)
+        add_commission = frappe.get_single("Appointment Commission")
+        if cint(add_commission.enabled) == 1 and add_commission.add_on == "Submit Appointment":
+            self.add_commissions(add_commission)
+
+    def add_commissions(self, settings):
+        for vae in self.custom_vehicle_assignment_employees:
+            if not vae.employee or not settings.salary_component:
+                continue
+            employee = vae.employee
+            salary_component = settings.salary_component
+            commission = 0
+            if vae.assign_as == "Groomer":
+                commission = flt(settings.groomer_commission)
+            elif vae.assign_as == "Driver":
+                commission = flt(settings.driver_commission)
+            elif vae.assign_as == "Other":
+                commission = flt(settings.other_commission)
+            
+            if commission <= 0:
+                continue
+
+            amount = commission * flt(self.custom_total_net_amount) / 100
+            if amount <= 0:
+                continue
+            additional_salary = frappe.new_doc("Additional Salary")
+            company = frappe.db.get_value("Employee", employee, "company")
+            additional_salary.update({
+                "employee": employee,
+                "company": company,
+                "salary_component": salary_component,
+                "amount": amount,
+                "payroll_date": add_to_date(getdate(self.scheduled_time), months=1)
+            })
+            additional_salary.flags.ignore_permissions = True
+            additional_salary.save()
+            
 
     def update_consumed_qty(self, qty=1):
         for service in self.custom_appointment_services:
@@ -158,6 +194,8 @@ class Appointment(BaseAppointment):
         self.custom_total_pets = len(self.custom_appointment_services)
 
     def validate_groomer_rest_time(self):
+        #TODO(fix validations)
+        return
         if not self.custom_groomer:
             return
         rest_time = cint(
@@ -193,6 +231,8 @@ class Appointment(BaseAppointment):
             frappe.throw(msg)
 
     def update_all_related_appointments(self):
+        # TODO(fix employees)
+        return
         if (
             cint(
                 frappe.db.get_single_value(
@@ -357,6 +397,9 @@ class Appointment(BaseAppointment):
             payment_doc.submit()
         self.db_set("status", "Completed")
         self.db_set("custom_sales_invoice", invoice.name)
+        add_commission = frappe.get_single("Appointment Commission")
+        if cint(add_commission.enabled) == 1 and add_commission.get == "Complete Appointment":
+            self.add_commissions(add_commission)
         if not update_ends_time:
             return "ok"
 
@@ -383,6 +426,8 @@ class Appointment(BaseAppointment):
             frappe.delete_doc("Communication", communication, force=True)
 
     def sync_communication(self):
+        # TODO(Fix employees)
+        return
         event_participants = []
         if self.custom_employee:
             p1 = frappe._dict()
@@ -537,6 +582,13 @@ class Appointment(BaseAppointment):
             )
 
         return total_price, total_net_price, total_hours, total_amount_to_pay
+
+    @frappe.whitelist()
+    def set_vehicle_employees(self, vehicle=None):
+        if not vehicle:
+            return []
+        return frappe.get_all("Vehicle Assignment", filters={"status": "Active", "vehicle": vehicle}, fields=["employee", "employee_name", "assign_as"])
+
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
