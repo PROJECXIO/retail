@@ -64,35 +64,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Appointments",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointment",
-   "link_count": 0,
-   "link_to": "Appointment",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointment Settings",
-   "link_count": 0,
-   "link_to": "Appointment Booking Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Packages",
    "link_count": 6,
    "link_type": "DocType",
@@ -217,9 +188,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointments",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment",
+   "link_count": 0,
+   "link_to": "Appointment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Settings",
+   "link_count": 0,
+   "link_to": "Appointment Booking Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Commission",
+   "link_count": 0,
+   "link_to": "Appointment Commission",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle Assignment",
+   "link_count": 0,
+   "link_to": "Vehicle Assignment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-10-21 10:14:31.439905",
+ "modified": "2025-10-29 15:53:14.903866",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",
