@@ -653,6 +653,7 @@ def get_appointments(
                 "resourceId"
             ),  # resourceId for calendar-view
             Appointment.custom_vehicle.as_("vehicle"),
+            Appointment.custom_vehicle,
             Appointment.custom_area,
             Appointment.customer_name,
             Appointment.customer_phone_number,
@@ -663,7 +664,7 @@ def get_appointments(
             Appointment.customer_details.as_("description"),
             Appointment.custom_color.as_("color"),
             Appointment.scheduled_time.as_("scheduled_time"),
-            Appointment.custom_ends_on.as_("ends_on"),
+            Appointment.custom_ends_on,
             Appointment.owner,
             Appointment.custom_send_reminder.as_("send_reminder"),
             ConstantColumn(0).as_("all_day"),
@@ -708,6 +709,17 @@ def get_appointments(
 
     return appointments
 
+@frappe.whitelist()
+def update_appointment(args, field_map):
+    """Updates Event (called via calendar) based on passed `field_map`"""
+    args = frappe._dict(json.loads(args))
+    field_map = frappe._dict(json.loads(field_map))
+
+    w = frappe.get_doc(args.doctype, args.name)
+    w.set(field_map.start, args[field_map.start])
+    w.set(field_map.end, args.get(field_map.end))
+    w.set(field_map.resource, args.get(field_map.resource))
+    w.save()
 
 # Google Calendar
 def insert_event_in_google_calendar(doc):
