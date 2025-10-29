@@ -1,25 +1,27 @@
 frappe.views.calendar["Appointment"] = {
 	field_map: {
 		start: "scheduled_time",
-		end: "ends_on",
+		end: "custom_ends_on",
 		id: "name",
 		// allDay: "all_day",
 		title: "subject",
 		status: "status",
 		color: "color",
-		resource: "vehicle",
+		resource: "custom_vehicle",
 	},
 	style_map: {
 		Closed: "success",
 		Unverified: "info",
 		Open: "warning",
 	},
+	update_event_method: "retail.overrides.doctype.appointment.update_appointment",
 	get_events_method: "retail.overrides.doctype.appointment.get_appointments",
 	options: {
 		schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
 		resourceLabelText: __("Resources"),
 		resourceAreaWidth: "15%",
 		defaultView: "agendaDay",
+		eventResourceEditable: true,
 		resources: function (callback) {
 			frappe.call({
 				method: "frappe.client.get_list",
