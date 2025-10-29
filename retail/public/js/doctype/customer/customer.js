@@ -30,7 +30,6 @@ frappe.ui.form.on("Customer", {
             if (newTab === 'Address & Contact') {
                 frm.refresh_field("custom_pin_location");
             }
-            console.log("Switched to tab:", newTab);
         });
     },
     custom_add_new_pet: function(frm){
