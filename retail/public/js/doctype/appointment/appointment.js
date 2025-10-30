@@ -234,12 +234,16 @@ frappe.ui.form.on("Appointment", {
     custom_additional_discount(frm) {
         frm.trigger("update_total_price");
     },
+    update_total_pets(frm){
+        const total_pets = (new Set((frm.doc.custom_appointment_services || []).map(row => row.pet).filter( v => v))).size;
+        frm.set_value("custom_total_pets", total_pets);
+        frm.refresh_field("custom_total_pets");
+    },
     update_total_price(frm) {
         let total_price = 0;
         let total_net_price = 0;
-        let total_amount_to_pay = 0(
-            frm.doc.custom_appointment_addons || []
-        ).forEach((row) => {
+        let total_amount_to_pay = 0;
+        (frm.doc.custom_appointment_addons || []).forEach((row) => {
             total_price += flt(row.rate);
             total_net_price += flt(row.rate);
             total_amount_to_pay += flt(row.rate);
@@ -289,6 +293,7 @@ frappe.ui.form.on("Appointment", {
 frappe.ui.form.on("Appointment Service", {
     custom_appointment_services_remove(frm, cdt, cdn) {
         frm.trigger("update_total_price");
+        frm.trigger("update_total_pets");
     },
     pet(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
@@ -296,6 +301,7 @@ frappe.ui.form.on("Appointment Service", {
         row.service_item = null;
         row.price = 0;
         frm.trigger("update_total_price");
+        frm.trigger("update_total_pets");
     },
     price(frm, cdt, cdn) {
         frm.trigger("update_total_price");

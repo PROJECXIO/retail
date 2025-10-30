@@ -191,7 +191,7 @@ class Appointment(BaseAppointment):
             doc.db_set("consumed_qty", consumed_qty, update_modified=False)
 
     def set_total_pets(self):
-        self.custom_total_pets = len(self.custom_appointment_services)
+        self.custom_total_pets = len(set(filter(lambda x: x, map(lambda x: x.pet, self.custom_appointment_services))))
 
     def validate_groomer_rest_time(self):
         #TODO(fix validations)
