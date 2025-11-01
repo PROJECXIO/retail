@@ -7,3 +7,4 @@ retail.patches.v0_0.prepare_pet_roles
 # Patches added in this section will be executed after doctypes are migrated
 retail.patches.v0_0.rename_old_pets
 retail.patches.v0_0.update_appointments_messages
+retail.patches.v0_0.update_customers_contacts
