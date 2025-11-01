@@ -8,3 +8,4 @@ retail.patches.v0_0.prepare_pet_roles
 retail.patches.v0_0.rename_old_pets
 retail.patches.v0_0.update_appointments_messages
 retail.patches.v0_0.update_customers_contacts
+retail.patches.v0_0.update_customers_name
