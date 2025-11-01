@@ -2,7 +2,6 @@ import json
 from googleapiclient.errors import HttpError
 
 from pypika import functions
-from pypika.terms import ExistsCriterion
 
 import frappe
 from frappe import _
@@ -13,6 +12,8 @@ from frappe.integrations.doctype.google_calendar.google_calendar import (
     format_date_according_to_google_calendar,
 )
 from frappe.query_builder.custom import ConstantColumn
+import io
+from openpyxl import Workbook
 
 from frappe.utils import (
     get_fullname,
@@ -196,8 +197,16 @@ class Appointment(BaseAppointment):
 
     def set_booking_message(self):
         template = frappe.db.get_single_value("Appointment Booking Settings", "custom_booking_template_message") or ""
-        print(template)
-        template_message = frappe.render_template(template, context=self.as_dict())
+        context = self.as_dict()
+        pets_services = []
+        for row in self.custom_appointment_services:
+            pet_name = frappe.db.get_value("Pet", row.pet, "pet_name")
+            pets_services.append(f"{pet_name} - {row.service}")
+        pets_services = "\n".join(pets_services)
+        context.update({
+            "pets_services": pets_services,
+        })
+        template_message = frappe.render_template(template, context=context)
         self.custom_appointment_message = template_message
 
     def validate_groomer_rest_time(self):
@@ -991,3 +1000,103 @@ def bulk_submit(doctype, docnames):
         docnames = []
 
     return submit_cancel_or_update_docs(doctype, docnames)
+
+@frappe.whitelist()
+def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_start: str | None = None, range_end: str | None = None):
+    """Generate an .xlsx in-memory and stream it as a download."""
+    # ---- figure out window ----
+    if range_start and range_end:
+        start_date = getdate(range_start)
+        end_date   = getdate(range_end)
+    else:
+        start_date = getdate(current_date)
+        end_date   = start_date
+
+    start_dt = f"{start_date} 00:00:00"
+    end_dt_exclusive = f"{frappe.utils.add_days(end_date, 1)} 00:00:00"
+
+    filters = [
+        ["Appointment", "scheduled_time", "<", end_dt_exclusive],
+        ["Appointment", "custom_ends_on", ">=", start_dt],
+    ]
+    if resource_id == "unassigned":
+        filters.append(["Appointment", "custom_vehicle", "is", "not set"])
+    else:
+        filters.append(["Appointment", "custom_vehicle", "=", resource_id])
+
+    rows = frappe.get_all(
+        "Appointment",
+        filters,
+        order_by="scheduled_time asc",
+        limit_page_length=10000,
+        pluck="name"
+    )
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Bookings"
+    ws.append([f"Van {resource_id} Schedule"])
+
+    fmt = frappe.utils.format_datetime
+    for r in rows:
+        appointment = frappe.get_doc("Appointment", r)
+        ws.append([
+            "Booking #:", appointment.name
+        ])
+        ws.append([
+            "Appointment Time:", fmt(appointment.scheduled_time)
+        ])
+        ws.append([
+            "Client Name:", appointment.party,
+        ])
+        ws.append([
+            "Mobile Number:", appointment.customer_phone_number or "",
+        ])
+        ws.append([
+            "Location Pin:", appointment.custom_google_maps_link or "",
+        ])
+        ws.append([
+            "Address:", appointment.custom_address or "",
+        ])
+        ws.append([
+            "Number of Pets:", appointment.custom_total_pets or "",
+        ])
+        ws.append([
+            "Pet Details:", "",
+        ])
+        addons = [a.service_addon for a in appointment.custom_appointment_addons]
+        addons = ", ".join(addons)
+        for row in appointment.custom_appointment_services:
+            pet = frappe.get_doc("Pet", row.pet)
+            idx = row.idx
+            service = row.service
+            pet_name = pet.pet_name or ""
+            pet_type = pet.pet_type or ""
+            pet_size = pet.pet_size or ""
+            ws.append(
+                ["", f"• {idx}: {pet_name}, {pet_type}, {pet_size}, {service}, {addons}"]
+            )
+            
+        ws.append([
+            "Total Price:", appointment.custom_total_net_amount or "",
+        ])
+        # ws.append([
+        #     r.name, r.subject or "", r.custom_vehicle or "", r.customer or "", r.status or "",
+        #     fmt(r.scheduled_time) if r.scheduled_time else "",
+        #     fmt(r.custom_ends_on) if r.custom_ends_on else "",
+        #     r.owner or "", fmt(r.creation) if r.creation else "", fmt(r.modified) if r.modified else ""
+        # ])
+
+    bio = io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+
+    pretty = (resource_id if resource_id != "unassigned" else "Unassigned")
+    filename = f"VehicleBookings-{pretty}-{start_date}"
+    if end_date != start_date:
+        filename += f"-to-{end_date}"
+    filename += ".xlsx"
+
+    # ---- stream as download ----
+    frappe.local.response.filename = filename
+    frappe.local.response.filecontent = bio.getvalue()
+    frappe.local.response.type = "download"
