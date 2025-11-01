@@ -69,6 +69,7 @@ class Appointment(BaseAppointment):
 
         self.validate_groomer_rest_time()
         self.set_total_pets()
+        self.set_booking_message()
 
     def before_save(self):
         self.set_party_email()
@@ -192,6 +193,12 @@ class Appointment(BaseAppointment):
 
     def set_total_pets(self):
         self.custom_total_pets = len(set(filter(lambda x: x, map(lambda x: x.pet, self.custom_appointment_services))))
+
+    def set_booking_message(self):
+        template = frappe.db.get_single_value("Appointment Booking Settings", "custom_booking_template_message") or ""
+        print(template)
+        template_message = frappe.render_template(template, context=self.as_dict())
+        self.custom_appointment_message = template_message
 
     def validate_groomer_rest_time(self):
         #TODO(fix validations)

@@ -288,6 +288,17 @@ frappe.ui.form.on("Appointment", {
         frm.set_value("custom_total_amount_to_pay", total_amount_to_pay);
         frm.refresh_field("custom_total_amount_to_pay");
     },
+    custom_send(frm){
+        let mobile = frm.doc.customer_phone_number || "";
+        if(!mobile){
+            return
+        }
+        if(!mobile.startsWith("+971") && !mobile.startsWith("00971")){
+            mobile = "+971" + mobile;
+        }
+        let url = `https://wa.me/${mobile}?text=${frm.doc.custom_appointment_message}`;
+        window.open(url, "_blank");
+    },
 });
 
 frappe.ui.form.on("Appointment Service", {
