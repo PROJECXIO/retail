@@ -14,7 +14,8 @@ frappe.views.calendar["Appointment"] = {
 		Unverified: "info",
 		Open: "warning",
 	},
-	update_event_method: "retail.overrides.doctype.appointment.update_appointment",
+	update_event_method:
+		"retail.overrides.doctype.appointment.update_appointment",
 	get_events_method: "retail.overrides.doctype.appointment.get_appointments",
 	options: {
 		schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
@@ -50,20 +51,61 @@ frappe.views.calendar["Appointment"] = {
 				},
 			});
 		},
+		
 		resourceRender: function (resourceObj, labelTds) {
-			// labelTds is a jQuery <td> element for the header
-			const color = resourceObj.color || "#3788d8";
-			labelTds.css("padding-top", "10px");
-			$(labelTds).append(`
-				<div style="
-							background-color: ${color};
-							max-height: 4px;
-							height: 4px;
-							max-width: 75%;
-							margin: auto;">
-				</div>`);
-		},
-		eventAfterAllRender: function(){
+      const color = resourceObj.color || "#3788d8";
+
+      // Build label + tiny button
+      const html = `
+        <a class="fc-res-label btn-export">
+          ${frappe.utils.escape_html(resourceObj.title)} ${frappe.utils.icon("link-url", "sm")}
+        </a>
+        <div style="
+          background-color: ${color};
+          max-height: 4px; height: 4px; max-width: 75%; margin: 6px auto 0;">
+        </div>
+      `;
+
+      labelTds.css("padding-top", "10px").html(html);
+
+      // Wire the button
+      $(labelTds).find(".btn-export").on("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const $fc = $(labelTds).closest(".fc");
+        const center = $fc.fullCalendar("getDate").format("YYYY-MM-DD");
+
+        // const view = $fc.fullCalendar("getView");
+        // const rangeStart = view.start.format("YYYY-MM-DD");
+        // const rangeEnd   = view.end.format("YYYY-MM-DD");
+		const qs = $.param({
+			resource_id: resourceObj.id,
+			current_date: center,
+			// range_start, range_end
+		});
+
+		const url = `/api/method/retail.overrides.doctype.appointment.export_vehicle_bookings_direct?${qs}`;
+		window.open(url, "_blank");
+        // frappe.call({
+        //   method: "retail.overrides.doctype.appointment.export_vehicle_bookings",
+        //   args: {
+        //     resource_id: resourceObj.id,
+        //     current_date: center,
+        //     // range_start: rangeStart,
+        //     // range_end: rangeEnd,
+        //   },
+        //   freeze: true,
+        //   callback() {
+        //     frappe.show_alert({
+        //       message: __("Exported for {0}", [resourceObj.id]),
+        //       indicator: "green",
+        //     });
+        //   },
+        // });
+      });
+    },
+		eventAfterAllRender: function () {
 			$("body .container").css({
 				width: "90%",
 				"max-width": "100%",
@@ -81,7 +123,8 @@ frappe.views.calendar["Appointment"] = {
 			}
 			var doc = frappe.model.get_new_doc("Appointment");
 			doc.scheduled_time = get_system_datetime(startDate);
-			doc.custom_vehicle = resource && resource.id !== "unassigned" ? resource.id : null;
+			doc.custom_vehicle =
+				resource && resource.id !== "unassigned" ? resource.id : null;
 			frappe.set_route("Form", "Appointment", doc.name);
 		},
 	},
