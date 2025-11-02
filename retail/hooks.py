@@ -153,6 +153,7 @@ override_doctype_class = {
     "Appointment": "retail.overrides.doctype.appointment.Appointment",
     "Appointment Booking Settings": "retail.overrides.doctype.appointment_booking_settings.AppointmentBookingSettings",
     "Customer": "retail.overrides.doctype.customer.Customer",
+    "Item": "retail.overrides.doctype.item.Item",
 }
 
 # Document Events
