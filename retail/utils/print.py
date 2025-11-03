@@ -23,14 +23,6 @@ try:
 except Exception:
     HAS_PYQRCODE = False
 
-try:
-    import png as _pypng
-
-    HAS_PYPNG = True
-except Exception:
-    HAS_PYPNG = False
-
-
 def _ean13_value(val: str) -> Optional[str]:
     digits = re.sub(r"\D", "", val or "")
     if len(digits) == 12:
@@ -104,9 +96,6 @@ def _qrcode_svg(value: str) -> str:
 
 
 def _qrcode_png(value: str) -> bytes:
-    """QR to PNG if PyPNG is available."""
-    if not (HAS_PYQRCODE and HAS_PYPNG):
-        raise RuntimeError("QR PNG not available")
     qr = pyqrcode.create(
         str(value or ""), error="M", version=None, mode="binary", encoding="utf-8"
     )
