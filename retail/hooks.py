@@ -59,6 +59,7 @@ doctype_js = {
 doctype_list_js = {
     "POS Invoice": "public/js/doctype/pos_invoice/pos_invoice_list.js",
     "Appointment": "public/js/doctype/appointment/appointment_list.js",
+    "Item": "public/js/doctype/item/item_list.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 doctype_calendar_js = {
