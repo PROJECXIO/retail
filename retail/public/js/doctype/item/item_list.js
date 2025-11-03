@@ -227,13 +227,13 @@
                                 label: __("Label Size"),
                                 fieldtype: "Select",
                                 options: [
-                                    "size-30x20",
-                                    "size-38x25",
-                                    "size-50x25",
-                                    "size-60x25",
-                                    "size-60x30",
+                                    "30x20",
+                                    "38x25",
+                                    "50x25",
+                                    "60x25",
+                                    "60x30",
                                 ],
-                                default: "size-30x20",
+                                default: "50x25",
                                 reqd: 1,
                             },
                             {
@@ -248,28 +248,49 @@
                                 label: __("Price Source"),
                                 fieldtype: "Select",
                                 options: [
-                                    "standard_rate",
-                                    "valuation_rate",
-                                    "last_purchase_rate",
-                                    "price_list_rate",
+                                    {
+                                        "label": __("Standard Rate"),
+                                        "value": "Standard Rate",
+                                    },
+                                    {
+                                        "label": __("Valuation Rate"),
+                                        "value": "Valuation Rate",
+                                    },
+                                    {
+                                        "label": __("Last Purchase Rate"),
+                                        "value": "Last Purchase Rate",
+                                    },
+                                    {
+                                        "label": __("Price List Rate"),
+                                        "value": "Price List Rate",
+                                    },
                                 ],
-                                default: "standard_rate",
+                                default: "Price List Rate",
                                 reqd: 1,
                             },
                             {
                                 fieldname: "barcode_type",
                                 label: __("Barcode Type"),
                                 fieldtype: "Select",
-                                options: ["Code128", "EAN13", "QRCode"],
-                                default: "Code128",
+                                options: ["Barcode", "QRCode"],
+                                default: "Barcode",
                                 reqd: 1,
                             },
                             {
                                 fieldname: "barcode_source",
                                 label: __("Barcode Value From"),
                                 fieldtype: "Select",
-                                options: ["item_code", "first_item_barcode"],
-                                default: "item_code",
+                                options: [
+                                    {
+                                        "label": __("Item Code"),
+                                        "value": "Item Code",
+                                    },
+                                    {
+                                        "label": __("First Item Barcode"),
+                                        "value": "First Item Barcode",
+                                    },
+                                ],
+                                default: "Item Code",
                                 reqd: 1,
                             },
                             {

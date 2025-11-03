@@ -1,38 +1,37 @@
-# apps/retail/retail/utils/print.py
-
-from __future__ import annotations
-
+import base64
 import io
 import json
 import re
 from typing import Optional
 
 import frappe
-from frappe.utils import fmt_money
+from frappe.utils import fmt_money, flt, cint
 from frappe.utils.pdf import get_pdf
 
-# ------------------------------------------------------------
-# Optional dependencies (graceful fallbacks with clear errors)
-# ------------------------------------------------------------
 try:
-    from barcode import Code128, EAN13  # type: ignore
-    from barcode.writer import SVGWriter  # type: ignore
+    from barcode import Code128, EAN13
+    from barcode.writer import ImageWriter
+
     HAS_PYBARCODE = True
-except Exception:  # pragma: no cover
+except Exception:
     HAS_PYBARCODE = False
 
 try:
-    import pyqrcode  # PyQRCode==1.2.1
+    import pyqrcode
+
     HAS_PYQRCODE = True
-except Exception:  # pragma: no cover
+except Exception:
     HAS_PYQRCODE = False
 
+try:
+    import png as _pypng
 
-# ------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------
+    HAS_PYPNG = True
+except Exception:
+    HAS_PYPNG = False
+
+
 def _ean13_value(val: str) -> Optional[str]:
-    """Return 13-digit EAN string (compute check digit if 12 digits)."""
     digits = re.sub(r"\D", "", val or "")
     if len(digits) == 12:
         s = sum(int(d) for d in digits[-1::-2])
@@ -44,107 +43,156 @@ def _ean13_value(val: str) -> Optional[str]:
     return None
 
 
-def _barcode_svg_code128(value: str, module_width_px: int = 2, height_px: int = 40) -> str:
-    """Inline SVG for Code128."""
+def _trim_name(name: str, max_chars: int = 90) -> str:
+    s = (name or "").strip()
+    if len(s) <= max_chars:
+        return s
+    cut = s[:max_chars].rsplit(" ", 1)[0]
+    return (cut or s[:max_chars]).rstrip() + "…"
+
+
+def _barcode_png_code128(value: str, dpi: int = 300) -> bytes:
     if not HAS_PYBARCODE:
-        frappe.throw("Missing dependency: python-barcode. Install it and restart Bench.")
-    # wkhtmltopdf ~96dpi → px to mm ≈ px / 3.78
-    module_width_mm = max(0.1, float(module_width_px) / 3.78)
-    opts = {
-        "module_width": module_width_mm,
-        "module_height": float(height_px),
-        "font_size": 0,
-        "quiet_zone": 1,
-        "write_text": False,
-    }
+        frappe.throw(
+            "Missing dependency: python-barcode. Install `python-barcode` (Pillow required)."
+        )
     buf = io.BytesIO()
-    Code128(value, writer=SVGWriter()).write(buf, opts)
-    return buf.getvalue().decode("utf-8")
+    Code128(str(value or ""), writer=ImageWriter()).write(
+        buf,
+        {"dpi": int(dpi) or 300, "quiet_zone": 1, "write_text": False, "font_size": 0},
+    )
+    return buf.getvalue()
 
 
-def _barcode_svg_ean13(value: str, module_width_px: int = 2, height_px: int = 40) -> str:
-    """Inline SVG for EAN13. Accepts 12 or 13 digits; computes check digit if needed."""
+def _barcode_png_ean13(value: str, dpi: int = 300) -> bytes:
     if not HAS_PYBARCODE:
-        frappe.throw("Missing dependency: python-barcode. Install it and restart Bench.")
-    v = _ean13_value(value)
+        frappe.throw(
+            "Missing dependency: python-barcode. Install `python-barcode` (Pillow required)."
+        )
+    v = _ean13_value(str(value or ""))
     if not v:
         frappe.throw("Invalid EAN-13 value (must have 12 or 13 digits).")
-    module_width_mm = max(0.1, float(module_width_px) / 3.78)
-    opts = {
-        "module_width": module_width_mm,
-        "module_height": float(height_px),
-        "font_size": 0,
-        "quiet_zone": 1,
-        "write_text": False,
-    }
     buf = io.BytesIO()
-    EAN13(v, writer=SVGWriter()).write(buf, opts)
-    return buf.getvalue().decode("utf-8")
+    EAN13(v, writer=ImageWriter()).write(
+        buf,
+        {"dpi": int(dpi) or 300, "quiet_zone": 1, "write_text": False, "font_size": 0},
+    )
+    return buf.getvalue()
 
 
-def _qrcode_svg_pyqrcode(value: str, height_px: int = 40) -> str:
-    """
-    Return inline SVG for QR code using PyQRCode (no Pillow).
-    We let PyQRCode render SVG; scale heuristically toward height_px.
-    """
+def _normalize_svg(svg: str) -> str:
+    """Make an SVG fill its container: remove width/height and add preserveAspectRatio."""
+    if not svg:
+        return svg
+    svg = re.sub(r'\swidth="[^"]+"', "", svg)
+    svg = re.sub(r'\sheight="[^"]+"', "", svg)
+    if "preserveAspectRatio" not in svg:
+        svg = svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid meet" ', 1)
+    svg = svg.replace("<svg ", '<svg style="width:100%;height:100%;display:block;" ', 1)
+    return svg
+
+
+def _qrcode_svg(value: str) -> str:
     if not HAS_PYQRCODE:
-        frappe.throw("Missing dependency: PyQRCode. Install PyQRCode==1.2.1 and restart Bench.")
-    qr = pyqrcode.create(value, error="M", version=None, mode="alphanumeric", encoding="utf-8")
-    # Scale: small height → scale 3, otherwise 5 (wkhtmltopdf will fit via CSS container)
-    scale = 3 if int(height_px) <= 40 else 5
+        frappe.throw("Missing dependency: PyQRCode. Install `PyQRCode==1.2.1`.")
+    qr = pyqrcode.create(
+        str(value or ""), error="M", version=None, mode="binary", encoding="utf-8"
+    )
     buf = io.BytesIO()
-    qr.svg(buf, scale=scale, quiet_zone=1, xmldecl=False)
-    return buf.getvalue().decode("utf-8")
+    qr.svg(buf, scale=4, quiet_zone=1, xmldecl=False)
+    return _normalize_svg(buf.getvalue().decode("utf-8"))
 
 
-# ------------------------------------------------------------
-# Main endpoint
-# ------------------------------------------------------------
+def _qrcode_png(value: str) -> bytes:
+    """QR to PNG if PyPNG is available."""
+    if not (HAS_PYQRCODE and HAS_PYPNG):
+        raise RuntimeError("QR PNG not available")
+    qr = pyqrcode.create(
+        str(value or ""), error="M", version=None, mode="binary", encoding="utf-8"
+    )
+    buf = io.BytesIO()
+    qr.png(buf, scale=4, quiet_zone=1)
+    return buf.getvalue()
+
+
+def _barcode_img_html(value: str, btype: str, bh: int) -> str:
+    """Return HTML for barcode area confined to a fixed-height region."""
+    kind = (btype or "Code128").strip()
+
+    if kind == "QRCode":
+        try:
+            png = _qrcode_png(value)
+            b64 = base64.b64encode(png).decode("ascii")
+            return (
+                f'<div style="height:{int(bh)}px; width:100%; overflow:hidden;">'
+                f'<img src="data:image/png;base64,{b64}" alt="qrcode" '
+                f'style="width:{int(bh)}px; height:{int(bh)}px; display:block; object-fit:contain;"></div>'
+            )
+        except Exception:
+            svg = _qrcode_svg(value)
+            return (
+                f'<div style="height:{int(bh)}px; width:100%; overflow:hidden;">'
+                f"{svg}</div>"
+            )
+
+    try:
+        png = (
+            _barcode_png_ean13(value)
+            if kind == "EAN13"
+            else _barcode_png_code128(value)
+        )
+    except Exception as ex:
+        if HAS_PYBARCODE:
+            png = _barcode_png_code128(value)
+        else:
+            frappe.throw(
+                f"Barcode generation failed: {frappe.utils.escape_html(str(ex))}"
+            )
+    b64 = base64.b64encode(png).decode("ascii")
+    return (
+        f'<div style="height:{int(bh)}px; width:100%; overflow:hidden;">'
+        f'<img src="data:image/png;base64,{b64}" alt="barcode" '
+        f'style="width:100%; height:100%; display:block; object-fit:contain;"></div>'
+    )
+
+
+# ---------- main ----------
 @frappe.whitelist()
 def stickers(
     doctype: str,
     names: str,
-    label_size: str = "size-60x25",       # default to a wider sticker
+    label_size: str = "60x25",
     copies: int = 1,
-    price_source: str = "standard_rate",
-    barcode_type: str = "Code128",        # "Code128" | "EAN13" | "QRCode"
-    barcode_source: str = "item_code",    # "item_code" | "first_item_barcode"
+    price_source: str = "Price List Rate",
+    barcode_type: str = "Barcode",
+    barcode_source: str = "Item Code",
     barcode_height: int = 40,
-    barcode_width: int = 3,               # a bit thicker by default for wider labels
+    barcode_width: int = 3,
+    gap_mm: float = 3.0,
+    max_name_chars: int = 90,
+    name_font_mm: float = 2.0,
+    price_font_mm: float = 2.4,
 ):
-    """
-    Generate a single PDF of stickers for the selected Items.
+    """wkhtmltopdf-friendly stickers: name → barcode → price; QR stays inside its cell."""
+    copies_i = max(1, cint(copies))
+    bh = max(24, cint(barcode_height))
+    gap = max(0.0, min(flt(gap_mm) or 3.0, 20.0))
+    name_font = max(1.6, flt(name_font_mm) or 2.0)
+    price_font = max(1.8, flt(price_font_mm) or 2.4)
+    max_name_chars = max(20, cint(max_name_chars) or 90)
 
-    - No File records created; PDF is streamed directly.
-    - Barcodes inline: SVG (Code128/EAN13/QR), so no external HTTP fetches.
-    - Wider sizes & dynamic columns per size.
-    """
-
-    # ---- normalize incoming types (HTTP query params arrive as strings) ----
-    def _to_int(val, default):
-        try:
-            n = int(val)
-            return n if n > 0 else default
-        except Exception:
-            return default
-
-    copies_i = _to_int(copies, 1)
-    bw = _to_int(barcode_width, 3)     # narrow bar width hint (1D)
-    bh = _to_int(barcode_height, 40)   # target barcode height
-
-    # map size -> number of columns per row (A4-ish; tweak for your sheet)
-    size_columns = {
-        "size-30x20": 5,
-        "size-38x25": 4,
-        "size-50x25": 3,
-        "size-60x25": 3,   # wider
-        "size-60x30": 3,   # wider + taller
+    sizes = {
+        "30x20": {"w": 30, "h": 20, "cols": 5},
+        "38x25": {"w": 38, "h": 25, "cols": 4},
+        "50x25": {"w": 50, "h": 25, "cols": 3},
+        "60x25": {"w": 60, "h": 25, "cols": 3},
+        "60x30": {"w": 60, "h": 30, "cols": 3},
     }
-
-    # whitelist label sizes
-    if label_size not in set(size_columns.keys()):
-        label_size = "size-60x25"
-    cols = size_columns[label_size]
+    if label_size not in sizes:
+        label_size = "60x25"
+    W = sizes[label_size]["w"]
+    H = sizes[label_size]["h"]
+    COLS = sizes[label_size]["cols"]
 
     if doctype != "Item":
         frappe.throw("Only Item is supported in this endpoint.")
@@ -156,7 +204,6 @@ def stickers(
     if not names_list:
         frappe.throw("No items selected.")
 
-    # Fetch base fields (include default_currency: used for fmt_money)
     fields = [
         "name",
         "item_name",
@@ -173,9 +220,8 @@ def stickers(
         limit_page_length=10000,
     )
 
-    # First barcode per item if requested
     first_barcode_map = {}
-    if barcode_source == "first_item_barcode":
+    if barcode_source == "First Item Barcode":
         rows = frappe.get_all(
             "Item Barcode",
             filters={"parent": ["in", [i["name"] for i in items]]},
@@ -187,10 +233,11 @@ def stickers(
             if r.parent not in first_barcode_map and r.barcode:
                 first_barcode_map[r.parent] = r.barcode
 
-    # Optional: price list
     price_list_rate_map = {}
-    if price_source == "price_list_rate":
-        default_pl = frappe.db.get_single_value("Selling Settings", "selling_price_list") or None
+    if price_source == "Price List Rate":
+        default_pl = (
+            frappe.db.get_single_value("Selling Settings", "selling_price_list") or None
+        )
         if default_pl:
             ip_rows = frappe.get_all(
                 "Item Price",
@@ -201,124 +248,115 @@ def stickers(
                 fields=["item_code", "price_list_rate", "currency"],
                 limit_page_length=100000,
             )
-            price_list_rate_map = {r.item_code: (r.price_list_rate, r.currency) for r in ip_rows}
+            price_list_rate_map = {
+                r.item_code: (r.price_list_rate, r.currency) for r in ip_rows
+            }
 
-    # Styles (wider sizes + dynamic grid columns)
     css = f"""
     <style>
       @media print {{
         @page {{ margin: 5mm; }}
         body {{ margin: 0; }}
       }}
-      .grid {{
-        display: grid;
-        grid-gap: 2mm;
-        grid-template-columns: repeat({cols}, max-content);  /* fewer columns -> wider stickers */
-        align-items: start;
+      table.sheet {{
+        border-collapse: separate;
+        border-spacing: {gap}mm {gap}mm;
+        width: 100%;
       }}
-      .label {{
-        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      table.sheet td.cell {{
+        vertical-align: top;
+        padding: 0;
+        width: {W}mm;
+        height: {H}mm;
+      }}
+      table.lbl {{
+        width: {W}mm;
+        height: {H}mm;
         border: 1px dashed #ddd;
-        padding: 2mm 3mm;                 /* a touch more breathing room on wider labels */
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        page-break-inside: avoid;
-        overflow: hidden;
+        border-collapse: separate;
+        table-layout: fixed;
+        box-sizing: border-box;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        overflow: hidden;              /* ensure nothing leaks */
       }}
+      table.lbl td {{ padding: 0 3mm; }}
+      table.lbl tr:first-child td {{ padding-top: 2mm; }}
+      table.lbl tr:last-child td {{ padding-bottom: 2mm; }}
 
-      /* Sizes (Width x Height) */
-      .size-30x20 {{ width: 30mm; height: 20mm; }}
-      .size-38x25 {{ width: 38mm; height: 25mm; }}
-      .size-50x25 {{ width: 50mm; height: 25mm; }}
-      .size-60x25 {{ width: 60mm; height: 25mm; }}  /* wider */
-      .size-60x30 {{ width: 60mm; height: 30mm; }}  /* wider + taller */
+      td.name-cell {{ vertical-align: top; }}
+      td.barcode-cell {{
+        vertical-align: middle;
+        height: {bh}px;               /* hard reservation for barcode area */
+        padding-top: 1mm;
+        padding-bottom: 0.5mm;
+        overflow: hidden;             /* clip any overflow */
+      }}
+      td.price-cell {{ vertical-align: bottom; }}
 
-      .row {{ display: flex; align-items: center; justify-content: space-between; gap: 2mm; }}
       .name {{
         font-weight: 600;
-        font-size: 3mm;
-        line-height: 1.15;
-        /* allow full wrapping (no trimming) */
-        white-space: normal;          /* was nowrap */
-        overflow: visible;            /* was hidden */
-        text-overflow: clip;          /* was ellipsis */
-        word-break: break-word;       /* break long words/codes */
-        flex: 1 1 auto;               /* take remaining space */
-        min-width: 0;                 /* allow flex item to shrink & wrap */
-        }}
-      .price {{ font-weight: 700; font-size: 3.2mm; white-space: nowrap; }}
-      .barcode {{ display: block; margin-top: 0.8mm; }}
-      .tiny {{ font-size: 2.4mm; line-height: 1; text-align: center; margin-top: 0.6mm; }}
-
-      /* Make inline SVG barcodes fill height nicely */
-      .barcode-svg {{ height: {bh}px; width: 100%; }}
-      .barcode-svg svg {{ height: 100%; width: 100%; }}
+        font-size: {name_font}mm;
+        line-height: 1.12;
+        word-wrap: break-word;
+      }}
+      .price {{
+        font-weight: 700;
+        font-size: {price_font}mm;
+        white-space: nowrap;
+        text-align: right;
+      }}
     </style>
     """
 
-    # Build labels
-    labels_html = ['<div class="grid">']
-
+    cells_html = []
     for it in items:
         code = it.get("item_code") or it.get("name")
-        name = it.get("item_name") or code
+        raw_name = it.get("item_name") or code
+        name = _trim_name(raw_name, max_name_chars)
 
-        # price
-        currency = it.get("default_currency") or frappe.defaults.get_global_default("currency")
-        if price_source == "price_list_rate" and code in price_list_rate_map:
-            price_val, currency_from_ip = price_list_rate_map[code]
-            currency = currency_from_ip or currency
+        currency = it.get("default_currency") or frappe.defaults.get_global_default(
+            "currency"
+        )
+        if price_source == "Price List Rate" and code in price_list_rate_map:
+            price_val, cur2 = price_list_rate_map[code]
+            currency = cur2 or currency
         else:
-            price_val = it.get(price_source)
-        price_txt = fmt_money(price_val, currency=currency) if price_val else ""
+            key = price_source.lower().replace(" ", "_")
+            price_val = it.get(key)
+        price_txt = (
+            fmt_money(price_val, currency=currency) if price_val is not None else ""
+        )
 
-        # barcode value
-        if barcode_source == "first_item_barcode":
-            raw_value = first_barcode_map.get(it["name"]) or code
-        else:
-            raw_value = code
+        raw_value = (
+            first_barcode_map.get(it["name"])
+            if barcode_source == "First Item Barcode"
+            else code
+        )
+        raw_value = raw_value or code
+        if barcode_type == "Barcode":
+            barcode_type = "EAN13"
+        barcode_html = _barcode_img_html(raw_value, barcode_type, bh)
 
-        # render barcode inline
-        btype = (barcode_type or "Code128").strip()
-        try:
-            if btype == "EAN13":
-                svg = _barcode_svg_ean13(raw_value, bw, bh)
-                barcode_markup = f'<div class="barcode barcode-svg">{svg}</div>'
-            elif btype == "QRCode":
-                if not HAS_PYQRCODE:
-                    frappe.throw("PyQRCode is not installed. Install PyQRCode==1.2.1 and restart Bench.")
-                svg = _qrcode_svg_pyqrcode(raw_value, bh)
-                barcode_markup = f'<div class="barcode barcode-svg">{svg}</div>'
-            else:
-                svg = _barcode_svg_code128(raw_value, bw, bh)
-                barcode_markup = f'<div class="barcode barcode-svg">{svg}</div>'
-        except Exception as ex:
-            # Fallback to Code128 if chosen type fails (and python-barcode is available)
-            if HAS_PYBARCODE:
-                svg = _barcode_svg_code128(raw_value, bw, bh)
-                barcode_markup = f'<div class="barcode barcode-svg">{svg}</div>'
-            else:
-                frappe.throw(f"Barcode generation failed: {frappe.utils.escape_html(str(ex))}")
+        label_inner = f"""
+          <table class="lbl">
+            <tr><td class="name-cell"><div class="name">{frappe.utils.escape_html(name)}</div></td></tr>
+            <tr><td class="barcode-cell">{barcode_html}</td></tr>
+            <tr><td class="price-cell"><div class="price">{frappe.utils.escape_html(price_txt)}</div></td></tr>
+          </table>
+        """
 
         for _ in range(copies_i):
-            labels_html.append(
-                f"""
-                <div class="label {label_size}">
-                  <div class="row">
-                    <div class="name">{frappe.utils.escape_html(name)}</div>
-                    <div class="price">{frappe.utils.escape_html(price_txt)}</div>
-                  </div>
-                  {barcode_markup}
-                  <div class="tiny">{frappe.utils.escape_html(raw_value)}</div>
-                </div>
-                """
-            )
+            cells_html.append(f'<td class="cell">{label_inner}</td>')
 
-    labels_html.append("</div>")
-    html = css + "".join(labels_html)
+    rows_html = []
+    for i in range(0, len(cells_html), COLS):
+        chunk = cells_html[i : i + COLS]
+        if len(chunk) < COLS:
+            chunk.extend(['<td class="cell"></td>'] * (COLS - len(chunk)))
+        rows_html.append(f"<tr>{''.join(chunk)}</tr>")
 
-    # Generate and stream the PDF
+    html = css + f"<table class='sheet'>{''.join(rows_html)}</table>"
+
     pdf_bytes = get_pdf(html)
     filename = f"Item-Stickers-{frappe.utils.nowdate()}.pdf"
     frappe.local.response.filename = filename
