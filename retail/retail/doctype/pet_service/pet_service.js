@@ -45,6 +45,9 @@ frappe.ui.form.on("Pet Service Item Detail", {
             frm.trigger("update_total_price");
         }
     },
+    rate(frm, cdt, cdn) {
+        frm.trigger("update_total_price");
+    },
     discount_as(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
