@@ -14,20 +14,23 @@ class PetServicePackage(Document):
             self.total_package_price,
             self.total_package_qty,
             self.total_working_hours,
-        ) = self.check_discount_values()
+        ) = self.calc_totals()
+        if flt(self.selling_price) <= 0:
+            self.selling_price = flt(self.total_package_price)
+        self.different_price = flt(self.selling_price) - flt(self.total_package_price)
 
-    def check_discount_values(self):
-        total_price = 0
+    def calc_totals(self):
+        total_package_price = 0
         total_qty = 0
         total_hours = 0
 
         for row in self.package_services:
             row.amount = flt(row.rate) * cint(row.qty)
             total_qty += cint(row.qty)
-            total_price += flt(row.amount)
-            total_hours += flt(row.working_hours)
+            total_package_price += flt(row.amount)
+            total_hours += (cint(row.qty) * flt(row.working_hours))
 
-        return total_price, total_qty, total_hours
+        return total_package_price, total_qty, total_hours
 
 
 # searches for valid services
