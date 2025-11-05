@@ -38,16 +38,27 @@ frappe.ui.form.on("Pet Service Package", {
         frm.set_value("total_package_qty", total_package_qty);
         frm.refresh_field("total_package_qty");
     },
+    update_total_working_hours(frm){
+        let total_working_hours = 0;
+        (frm.doc.package_services || []).forEach((row) => {
+            total_working_hours += row.working_hours;
+        });
+
+        frm.set_value("total_working_hours", total_working_hours);
+        frm.refresh_field("total_working_hours");
+    },
 });
 
 frappe.ui.form.on("Package Service", {
     package_services_remove(frm, cdt, cdn) {
         frm.trigger("update_total_price");
         frm.trigger("update_total_qty");
+        frm.trigger("update_total_working_hours");
     },
     async service(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
         row.service_item = null;
+        frm.trigger("update_total_working_hours");
     },
     rate(frm, cdt, cdn){
         const row = locals[cdt][cdn];

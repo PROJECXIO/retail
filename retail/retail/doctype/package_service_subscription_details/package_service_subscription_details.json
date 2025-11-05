@@ -7,59 +7,31 @@
  "engine": "InnoDB",
  "field_order": [
   "pet_service_package",
+  "working_hours",
   "qty",
-  "rate",
-  "amount",
-  "column_break_rqgf",
   "extra_qty",
-  "discount",
-  "discount_as"
+  "column_break_rqgf",
+  "rate",
+  "discount"
  ],
  "fields": [
-  {
-   "default": "1",
-   "fieldname": "qty",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Qty",
-   "non_negative": 1,
-   "reqd": 1
-  },
   {
    "fieldname": "column_break_rqgf",
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "extra_qty",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Extra Qty",
-   "non_negative": 1
-  },
-  {
-   "fieldname": "discount",
-   "fieldtype": "Float",
-   "label": "Discount",
-   "non_negative": 1,
-   "precision": "2"
-  },
-  {
-   "fieldname": "discount_as",
-   "fieldtype": "Select",
-   "label": "Discount as",
-   "options": "\nPercent"
-  },
-  {
+   "columns": 2,
    "fieldname": "pet_service_package",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Pet Service Package",
+   "label": "Package",
    "options": "Pet Service Package",
    "reqd": 1
   },
   {
+   "columns": 1,
    "fetch_from": "pet_service_package.total_package_price",
+   "fetch_if_empty": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -69,12 +41,42 @@
    "reqd": 1
   },
   {
-   "fieldname": "amount",
-   "fieldtype": "Currency",
+   "columns": 2,
+   "fieldname": "discount",
+   "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Discount %",
+   "precision": "2"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "pet_service_package.total_working_hours",
+   "fetch_if_empty": 1,
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Qty",
    "non_negative": 1,
-   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "extra_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Extra Qty",
+   "non_negative": 1,
    "reqd": 1
   }
  ],
@@ -82,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-19 12:15:32.743313",
+ "modified": "2025-11-04 17:05:48.735145",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service Subscription Details",

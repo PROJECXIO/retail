@@ -13,18 +13,21 @@ class PetServicePackage(Document):
         (
             self.total_package_price,
             self.total_package_qty,
+            self.total_working_hours,
         ) = self.check_discount_values()
 
     def check_discount_values(self):
         total_price = 0
         total_qty = 0
+        total_hours = 0
 
         for row in self.package_services:
             row.amount = flt(row.rate) * cint(row.qty)
             total_qty += cint(row.qty)
             total_price += flt(row.amount)
+            total_hours += flt(row.working_hours)
 
-        return total_price, total_qty
+        return total_price, total_qty, total_hours
 
 
 # searches for valid services

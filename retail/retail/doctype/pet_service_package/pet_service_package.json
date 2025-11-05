@@ -13,6 +13,7 @@
   "package_services",
   "totals_section",
   "total_package_price",
+  "total_working_hours",
   "column_break_rnxq",
   "total_package_qty",
   "amended_from"
@@ -101,12 +102,19 @@
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 1
+  },
+  {
+   "fieldname": "total_working_hours",
+   "fieldtype": "Float",
+   "label": "Total Working Hours",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-19 12:07:46.469699",
+ "modified": "2025-11-04 12:56:10.443327",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",

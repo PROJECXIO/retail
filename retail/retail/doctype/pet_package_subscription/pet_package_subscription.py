@@ -10,16 +10,12 @@ from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_ent
 
 class PetPackageSubscription(Document):
     def validate(self):
-        total_amount, total_net_amount, total_qty, total_extra_qty = (
-            self.check_discount_values()
+        self.total_amount, self.total_net_amount = (
+            self.calculate_totals_amounts()
         )
-        self.total_amount = total_amount
-        self.total_net_amount = total_net_amount
-        self.total_qty = total_qty
-        self.total_extra_qty = total_extra_qty
-        self.total_net_qty = total_qty + total_extra_qty
-
-        self.fetch_service_items()
+        self.total_qty, self.total_extra_qty, self.total_net_qty = (
+            self.calculate_totals_qty()
+        )
 
     def before_submit(self):
         self.status = "Open"
@@ -87,6 +83,7 @@ class PetPackageSubscription(Document):
         total_net_amount = 0
         total_qty = 0
         total_extra_qty = 0
+        
         for row in self.package_services:
             row.amount = flt(row.rate) * cint(row.qty)
             total_amount += flt(row.amount)
@@ -131,28 +128,49 @@ class PetPackageSubscription(Document):
             total_net_amount = flt(total_net_amount) - flt(self.additional_discount)
 
         return total_amount, total_net_amount, total_qty, total_extra_qty
+    
+    def calculate_totals_amounts(self):
+        pkgDisc = self.build_package_discount_map()
 
-    def fetch_service_items(self):
-        self.subscription_package_service = []
-        for row in self.package_services:
-            package = frappe.get_doc("Pet Service Package", row.pet_service_package)
-            total_qty = cint(row.qty)
-            for service in package.package_services:
-                qty = cint(service.qty) * total_qty
-                rate = flt(service.rate)
-                amount = qty * rate
-                if row.discount_as == "percent":
-                    amount = amount - (amount * flt(row.discount)) / 100
+        total_price = 0.0
+        total_net = 0.0
 
-                self.append(
-                    "subscription_package_service",
-                    {
-                        "service": service.service,
-                        "service_item": service.service_item,
-                        "qty": qty,
-                        "working_hours": service.working_hours,
-                        "rate": rate,
-                        "amount": amount,
-                        "discount": flt(row.discount),
-                    },
-                )
+        for r in (self.subscription_package_service or []):
+            qty = flt(r.qty)
+            rate = flt(r.rate)
+            line_total = qty * rate
+
+            pkg_percent = flt(pkgDisc[r.service_package] or 0)
+            item_percent = flt(r.discount or 0)
+
+            after_pkg = line_total * (1 - pkg_percent / 100.0)
+            net = after_pkg * (1 - item_percent / 100.0)
+
+            r.amount = net
+
+            total_price += line_total
+            total_net += net
+
+        if self.additional_discount_as == "Percent":
+            total_net = flt(total_net) - (flt(total_net) * flt(self.additional_discount)) / 100
+        elif self.additional_discount_as == "Fixed Amount":
+            total_net = flt(total_net) - flt(self.additional_discount)
+        return total_price, total_net
+
+    def calculate_totals_qty(self):
+        total_qty = 0
+        total_extra_qty = 0
+
+        for row in (self.package_services or []):
+            total_qty += cint(row.qty)
+            total_extra_qty += cint(row.extra_qty)
+
+        total_net_qty = total_qty + total_extra_qty
+        return total_qty, total_extra_qty, total_net_qty
+
+    def build_package_discount_map(self):
+        map = {}
+        for row in (self.package_services or []):
+            if (row.pet_service_package):
+                map[row.pet_service_package] = flt(row.discount or 0)
+        return map
