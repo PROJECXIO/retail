@@ -1,24 +1,103 @@
 frappe.ui.form.on("Pet Package Subscription", {
     refresh(frm) {
         frm.trigger("set_label");
-
+        frm.trigger("disable_items_table");
+        // if (frm.doc.docstatus == 1 && !frm.doc.sales_invoice) {
+            frm.trigger("add_invoice_button");
+        // }
+    },
+    disable_items_table(frm) {
         const grid = frm.get_field("subscription_package_service").grid;
         grid.cannot_add_rows = true;
         grid.only_sortable = true;
+        grid.cannot_delete_rows = true;
         grid.refresh();
 
         grid.wrapper
             .find(".grid-add-row, .grid-add-multiple-rows, .grid-footer")
             .hide();
     },
-
+    add_invoice_button(frm) {
+        frm.add_custom_button(__("Prepare Invoice"), () => {
+            const table_fields = [
+                {
+                    fieldname: "mode_of_payment",
+                    fieldtype: "Link",
+                    in_list_view: 1,
+                    label: __("Mode of Payment"),
+                    options: "Mode of Payment",
+                    reqd: 1,
+                },
+                {
+                    fieldname: "paid_amount",
+                    fieldtype: "Currency",
+                    in_list_view: 1,
+                    label: __("Paid Amount"),
+                    options: "company:company_currency",
+                    onchange: function () {
+                        dialog.fields_dict.payments_details.df.data.some((d) => {
+                            if (d.idx == this.doc.idx) {
+                                d.paid_amount = this.value;
+                                dialog.fields_dict.payments_details.grid.refresh();
+                                return true;
+                            }
+                        });
+                    },
+                },
+            ];
+            let dialog = new frappe.ui.Dialog({
+                title: __("Prepare Invoice"),
+                fields: [
+                    {
+                        fieldtype: "HTML",
+                        fieldname: "info_message",
+                        options: `
+                                    <div style="padding:16px 0; color:#666;">
+                                        ${__(
+                            "Prepare Invoice, this will create sales invoice?"
+                        )}
+                                    </div>
+                                `,
+                    },
+                    {
+                        label: __("Invoice Due date"),
+                        fieldtype: "Date",
+                        fieldname: "due_date",
+                        default: frappe.datetime.nowdate(),
+                        reqd: 1,
+                    },
+                    {
+                        fieldname: "payments_details",
+                        fieldtype: "Table",
+                        label: __("Customer Payments"),
+                        cannot_add_rows: false,
+                        in_place_edit: true,
+                        data: [],
+                        fields: table_fields,
+                    },
+                ],
+                primary_action(data) {
+                    frappe.call({
+                        method: "create_invoice",
+                        doc: frm.doc,
+                        args: data,
+                        callback: function (r) {
+                            frm.reload_doc();
+                        },
+                    });
+                    dialog.hide();
+                },
+                primary_action_label: __("Complete Appointment"),
+            });
+            dialog.show();
+        });
+    },
     validate(frm) {
         combine_package_service_duplicates(frm);
         frm.trigger("update_total_qty");
         frm.trigger("update_total_price");
     },
 
-    // Robust: prune details using what is STILL alive after the delete
     package_services_remove(frm) {
         prune_details_by_alive_packages(frm);
         frm.trigger("update_total_qty");
@@ -36,8 +115,8 @@ frappe.ui.form.on("Pet Package Subscription", {
     update_total_price(frm) {
         const pkgDisc = build_package_discount_map(frm);
 
-        let total_price = 0.0; // sum before discounts
-        let total_net = 0.0; // after package + item discounts
+        let total_price = 0.0;
+        let total_net = 0.0;
 
         (frm.doc.subscription_package_service || []).forEach((r) => {
             const qty = flt(r.qty);
@@ -102,7 +181,6 @@ frappe.ui.form.on("Package Service Subscription Details", {
         const row = locals[cdt][cdn];
         if (!row) return;
 
-        // If cleared: prune by what's alive and stop
         if (!row.pet_service_package) {
             prune_details_by_alive_packages(frm);
             frm.trigger("update_total_qty");

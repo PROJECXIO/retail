@@ -25,39 +25,41 @@ class PetPackageSubscription(Document):
 
     @frappe.whitelist()
     def create_invoice(self, due_date=False, payments_details=[]):
-        if self.sales_invoice or self.docstatus != 1:
-            return
+        # if self.sales_invoice or self.docstatus != 1:
+        #     return
+        pkg_discount = self.build_package_discount_map()
 
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = self.customer
         invoice.posting_date = self.subscription_at
         invoice.due_date = due_date or getdate()
         for service in self.subscription_package_service:
-            if not service.service or not service.service_item:
-                continue
             doc = frappe.get_doc("Pet Service Item", service.service_item)
             rate = flt(service.rate)
-            discount_percentage = 0
-            if flt(service.discount) > 0:
-                rate = rate - (rate * flt(service.discount) / 100)
+            pkg_percent = flt(pkg_discount[service.service_package] or 0)
+            # pkg discount
+            rate = rate - (rate * flt(pkg_percent) / 100)
+            # line discount
+            rate = rate - (rate * flt(service.discount) / 100)
             item = {
                 "item_code": doc.item,
                 "uom": doc.uom,
                 "qty": service.qty,
                 "rate": rate,
-                "discount_percentage": discount_percentage,
             }
+            item = invoice.append("items", item)
+            item.rate = rate
+            if rate <= 0:
+                item.discount_percentage = 100
 
-            invoice.append(
-                "items",
-                item,
-            )
         additional_discount = flt(self.additional_discount)
         if additional_discount > 0:
             if self.additional_discount_as == "Fixed Amount":
                 invoice.discount_amount = additional_discount
+                invoice.additional_discount_percentage = 0
             elif self.additional_discount_as == "Percent":
-                invoice.discount_amount = additional_discount
+                invoice.additional_discount_percentage = additional_discount
+                invoice.discount_amount = 0
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
@@ -130,7 +132,7 @@ class PetPackageSubscription(Document):
         return total_amount, total_net_amount, total_qty, total_extra_qty
     
     def calculate_totals_amounts(self):
-        pkgDisc = self.build_package_discount_map()
+        pkg_discount = self.build_package_discount_map()
 
         total_price = 0.0
         total_net = 0.0
@@ -140,7 +142,7 @@ class PetPackageSubscription(Document):
             rate = flt(r.rate)
             line_total = qty * rate
 
-            pkg_percent = flt(pkgDisc[r.service_package] or 0)
+            pkg_percent = flt(pkg_discount[r.service_package] or 0)
             item_percent = flt(r.discount or 0)
 
             after_pkg = line_total * (1 - pkg_percent / 100.0)
