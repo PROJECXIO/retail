@@ -7,11 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "service",
+  "service_item",
   "qty",
   "column_break_acdw",
   "working_hours",
   "rate",
-  "amount"
+  "selling_rate"
  ],
  "fields": [
   {
@@ -24,7 +25,7 @@
    "reqd": 1
   },
   {
-   "columns": 2,
+   "columns": 1,
    "fetch_from": "service.working_hours",
    "fieldname": "working_hours",
    "fieldtype": "Float",
@@ -34,7 +35,7 @@
    "read_only": 1
   },
   {
-   "columns": 2,
+   "columns": 1,
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Int",
@@ -44,8 +45,8 @@
    "reqd": 1
   },
   {
-   "columns": 2,
-   "fetch_from": "service.selling_price",
+   "columns": 1,
+   "fetch_from": "service_item.rate",
    "fetch_if_empty": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
@@ -56,25 +57,36 @@
    "reqd": 1
   },
   {
+   "columns": 1,
+   "fieldname": "column_break_acdw",
+   "fieldtype": "Column Break"
+  },
+  {
    "columns": 2,
-   "fieldname": "amount",
-   "fieldtype": "Currency",
+   "fieldname": "service_item",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Amount",
-   "non_negative": 1,
-   "read_only": 1,
+   "label": "Service Item",
+   "options": "Pet Service Item",
    "reqd": 1
   },
   {
-   "fieldname": "column_break_acdw",
-   "fieldtype": "Column Break"
+   "columns": 2,
+   "fetch_from": "service_item.rate",
+   "fetch_if_empty": 1,
+   "fieldname": "selling_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Selling Rate",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-05 13:21:35.455314",
+ "modified": "2025-11-05 14:28:47.613232",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service",
