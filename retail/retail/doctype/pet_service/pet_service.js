@@ -2,33 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Pet Service", {
-    discount(frm) {
-        frm.trigger("update_total_price");
-    },
-    discount_as(frm) {
-        frm.trigger("update_total_price");
-    },
     update_total_price(frm) {
-        let total_price = 0;
-        let total_net_price = 0;
-        (frm.doc.service_items || []).forEach(row => {
-            total_price += flt(row.rate);
-            let amount = 0;
-            if (row.discount_as == "Percent") {
-                amount = flt(row.rate) - (flt(row.rate) * flt(row.discount)) / 100;
-            } else if (row.discount_as == "Fixed Amount") {
-                amount = flt(row.rate) - flt(row.discount);
-            } else {
-                amount = flt(row.rate);
-            }
-            total_net_price += amount;
-        });
-
-        frm.set_value("total_price", total_price);
+        const price = (frm.doc.service_items || []).reduce((prev, curr) => prev + flt(curr.rate), 0);
+        frm.set_value("total_price", price);
         frm.refresh_field("total_price");
 
-        frm.set_value("total_net_price", total_net_price);
-        frm.refresh_field("total_net_price");
+        frm.set_value("selling_price", price);
+        frm.refresh_field("selling_price");
     },
 });
 
@@ -46,12 +26,6 @@ frappe.ui.form.on("Pet Service Item Detail", {
         }
     },
     rate(frm, cdt, cdn) {
-        frm.trigger("update_total_price");
-    },
-    discount_as(frm, cdt, cdn) {
-        frm.trigger("update_total_price");
-    },
-    discount(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
 });
