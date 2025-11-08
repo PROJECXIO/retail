@@ -6,15 +6,16 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "service",
   "service_item",
   "qty",
-  "working_hours",
+  "actual_qty",
   "rate",
   "column_break_rqgf",
   "consumed_qty",
-  "amount",
-  "discount"
+  "discount",
+  "service_package",
+  "service",
+  "amount"
  ],
  "fields": [
   {
@@ -22,42 +23,39 @@
    "fieldtype": "Link",
    "label": "Service",
    "options": "Pet Service",
+   "read_only": 1,
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "service_item",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Service Item",
    "options": "Pet Service Item",
+   "read_only": 1,
    "reqd": 1
   },
   {
+   "columns": 1,
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Qty",
    "non_negative": 1,
+   "read_only": 1,
    "reqd": 1
   },
   {
-   "fetch_from": "service.working_hours",
-   "fieldname": "working_hours",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Working Hours",
-   "precision": "2",
-   "read_only": 1
-  },
-  {
+   "columns": 1,
    "fetch_from": "service_item.rate",
+   "fetch_if_empty": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
    "non_negative": 1,
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -65,6 +63,35 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "consumed_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Consumed Qty",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "discount",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Discount %",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "service_package",
+   "fieldtype": "Link",
+   "label": "Service Package",
+   "options": "Pet Service Package",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -74,28 +101,20 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "consumed_qty",
+   "columns": 1,
+   "fieldname": "actual_qty",
    "fieldtype": "Int",
-   "label": "Consumed Qty",
+   "label": "Actual Qty",
    "non_negative": 1,
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "discount",
-   "fieldtype": "Float",
-   "label": "Discount",
-   "non_negative": 1,
-   "precision": "2",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-19 16:31:31.682452",
+ "modified": "2025-11-05 10:42:35.632789",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Subscription Package Service",

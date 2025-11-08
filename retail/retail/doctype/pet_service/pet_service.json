@@ -13,11 +13,7 @@
   "section_break_ibmz",
   "service_items",
   "pet_type",
-  "pet_size",
-  "section_break_qphe",
-  "total_price",
-  "column_break_mhpu",
-  "total_net_price"
+  "pet_size"
  ],
  "fields": [
   {
@@ -47,32 +43,6 @@
    "label": "Service Items"
   },
   {
-   "default": "0",
-   "fieldname": "total_price",
-   "fieldtype": "Currency",
-   "label": "Total Price",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "section_break_qphe",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_mhpu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "total_net_price",
-   "fieldtype": "Currency",
-   "label": "Total Net Price",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "features",
    "fieldtype": "Table MultiSelect",
    "label": "Features",
@@ -89,6 +59,7 @@
    "fieldname": "pet_type",
    "fieldtype": "Small Text",
    "hidden": 1,
+   "in_list_view": 1,
    "label": "Pet Type",
    "read_only": 1
   },
@@ -96,6 +67,7 @@
    "fieldname": "pet_size",
    "fieldtype": "Small Text",
    "hidden": 1,
+   "in_list_view": 1,
    "label": "Pet Size",
    "read_only": 1
   }
@@ -103,7 +75,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-15 16:04:52.619665",
+ "modified": "2025-11-05 14:17:22.352502",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service",
@@ -204,5 +176,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

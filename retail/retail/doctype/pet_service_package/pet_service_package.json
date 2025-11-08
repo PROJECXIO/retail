@@ -13,8 +13,11 @@
   "package_services",
   "totals_section",
   "total_package_price",
+  "selling_price",
+  "different_price",
   "column_break_rnxq",
   "total_package_qty",
+  "total_working_hours",
   "amended_from"
  ],
  "fields": [
@@ -101,12 +104,36 @@
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 1
+  },
+  {
+   "fieldname": "total_working_hours",
+   "fieldtype": "Float",
+   "label": "Total Working Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "selling_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Selling Price",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "different_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Different Price",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-19 12:07:46.469699",
+ "modified": "2025-11-05 13:34:45.995250",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",

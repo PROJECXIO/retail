@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _
 from frappe.utils import flt, cint, unique
 from frappe.model.document import Document
 from frappe.desk.reportview import get_filters_cond, get_match_cond
@@ -10,22 +9,23 @@ from frappe.desk.reportview import get_filters_cond, get_match_cond
 
 class PetServicePackage(Document):
     def validate(self):
-        (
-            self.total_package_price,
-            self.total_package_qty,
-        ) = self.check_discount_values()
+        self.set_totals()
+        if flt(self.selling_price) <= 0:
+            self.selling_price = flt(self.total_package_price)
+        self.different_price = flt(self.selling_price) - flt(self.total_package_price)
 
-    def check_discount_values(self):
-        total_price = 0
-        total_qty = 0
-
+    def set_totals(self):
+        self.total_package_price = 0
+        self.total_package_qty = 0
+        self.total_working_hours = 0
+        selling_price = 0
         for row in self.package_services:
-            row.amount = flt(row.rate) * cint(row.qty)
-            total_qty += cint(row.qty)
-            total_price += flt(row.amount)
-
-        return total_price, total_qty
-
+            self.total_package_price += cint(row.qty) * flt(row.rate)
+            selling_price += cint(row.qty) * flt(row.selling_rate)
+            self.total_package_qty += cint(row.qty)
+            self.total_working_hours += cint(row.qty) * flt(row.working_hours)
+        if flt(self.selling_price) <= 0:
+            self.selling_price = selling_price
 
 # searches for valid services
 @frappe.whitelist()

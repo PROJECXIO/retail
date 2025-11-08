@@ -9,10 +9,10 @@
   "service",
   "service_item",
   "qty",
+  "column_break_acdw",
   "working_hours",
   "rate",
-  "amount",
-  "column_break_rqgf"
+  "selling_rate"
  ],
  "fields": [
   {
@@ -45,12 +45,9 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_rqgf",
-   "fieldtype": "Column Break"
-  },
-  {
-   "columns": 2,
+   "columns": 1,
    "fetch_from": "service_item.rate",
+   "fetch_if_empty": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -58,6 +55,11 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "column_break_acdw",
+   "fieldtype": "Column Break"
   },
   {
    "columns": 2,
@@ -70,12 +72,13 @@
   },
   {
    "columns": 2,
-   "fieldname": "amount",
+   "fetch_from": "service_item.rate",
+   "fetch_if_empty": 1,
+   "fieldname": "selling_rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Selling Rate",
    "non_negative": 1,
-   "read_only": 1,
    "reqd": 1
   }
  ],
@@ -83,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-19 12:08:46.617575",
+ "modified": "2025-11-05 14:28:47.613232",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service",
