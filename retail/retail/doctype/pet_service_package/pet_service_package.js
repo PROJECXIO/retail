@@ -13,27 +13,40 @@ frappe.ui.form.on("Pet Service Package", {
             }
         });
     },
+    selling_price(frm) {
+        frm.trigger("update_different_price");
+    },
+    total_amount(frm) {
+        frm.trigger("update_different_price");
+    },
+    update_different_price(frm){
+        frm.set_value("different_price", flt(frm.doc.selling_price) - flt(frm.doc.total_amount));
+        frm.refresh_field("different_price");
+    },
     update_total_totals(frm) {
-        let total_package_price = 0;
+        let total_amount = 0;
+        let total_selling_price = 0;
         let selling_price = 0;
-        let total_package_qty = 0;
+        let total_items_qty = 0;
         let total_working_hours = 0;
         (frm.doc.package_services || []).forEach((row) => {
-            total_package_price += cint(row.qty) * flt(row.rate);
+            total_amount += cint(row.qty) * flt(row.rate);
+            total_selling_price += cint(row.qty) * flt(row.selling_rate);
             selling_price += cint(row.qty) * flt(row.selling_rate);
-            total_package_qty += cint(row.qty);
+            total_items_qty += cint(row.qty);
             total_working_hours += cint(row.qty) * flt(row.working_hours);
         });
 
-        frm.set_value("total_package_price", total_package_price);
-        frm.refresh_field("total_package_price");
+        frm.set_value("total_amount", total_amount);
+        frm.refresh_field("total_amount");
+        frm.set_value("total_selling_price", total_selling_price);
+        frm.refresh_field("total_selling_price");
         frm.set_value("selling_price", selling_price);
         frm.refresh_field("selling_price");
-        frm.set_value("total_package_qty", total_package_qty);
-        frm.refresh_field("total_package_qty");
+        frm.set_value("total_items_qty", total_items_qty);
+        frm.refresh_field("total_items_qty");
         frm.set_value("total_working_hours", total_working_hours);
         frm.refresh_field("total_working_hours");
-
     },
 });
 

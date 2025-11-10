@@ -8,10 +8,9 @@
  "field_order": [
   "pet_service_package",
   "working_hours",
-  "qty",
-  "extra_qty",
   "column_break_rqgf",
-  "rate",
+  "package_price",
+  "selling_rate",
   "discount"
  ],
  "fields": [
@@ -26,18 +25,6 @@
    "in_list_view": 1,
    "label": "Package",
    "options": "Pet Service Package",
-   "reqd": 1
-  },
-  {
-   "columns": 1,
-   "fetch_from": "pet_service_package.total_package_price",
-   "fetch_if_empty": 1,
-   "fieldname": "rate",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Rate",
-   "non_negative": 1,
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -60,23 +47,26 @@
    "read_only": 1
   },
   {
-   "columns": 1,
-   "default": "1",
-   "fieldname": "qty",
-   "fieldtype": "Int",
+   "columns": 2,
+   "fetch_from": "pet_service_package.selling_price",
+   "fetch_if_empty": 1,
+   "fieldname": "selling_rate",
+   "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Qty",
+   "label": "Selling Rate",
    "non_negative": 1,
    "reqd": 1
   },
   {
    "columns": 2,
-   "default": "0",
-   "fieldname": "extra_qty",
-   "fieldtype": "Int",
+   "fetch_from": "pet_service_package.total_amount",
+   "fetch_if_empty": 1,
+   "fieldname": "package_price",
+   "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Extra Qty",
+   "label": "Package Price",
    "non_negative": 1,
+   "read_only": 1,
    "reqd": 1
   }
  ],
@@ -84,7 +74,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-04 17:05:48.735145",
+ "modified": "2025-11-10 12:04:49.450711",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service Subscription Details",

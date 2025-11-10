@@ -12,11 +12,12 @@
   "package_service_section",
   "package_services",
   "totals_section",
-  "total_package_price",
+  "total_amount",
+  "total_selling_price",
   "selling_price",
   "different_price",
   "column_break_rnxq",
-  "total_package_qty",
+  "total_items_qty",
   "total_working_hours",
   "amended_from"
  ],
@@ -66,28 +67,8 @@
    "label": "Totals"
   },
   {
-   "fieldname": "total_package_price",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Total Package Price",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_rnxq",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_package_qty",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Total Package Qty",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
   },
   {
    "fieldname": "amended_from",
@@ -128,12 +109,42 @@
    "in_standard_filter": 1,
    "label": "Different Price",
    "read_only": 1
+  },
+  {
+   "fieldname": "total_selling_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Selling Price",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_items_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Items Qty",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-05 13:34:45.995250",
+ "modified": "2025-11-10 11:42:12.099121",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",

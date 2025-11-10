@@ -11,18 +11,20 @@ class PetServicePackage(Document):
     def validate(self):
         self.set_totals()
         if flt(self.selling_price) <= 0:
-            self.selling_price = flt(self.total_package_price)
-        self.different_price = flt(self.selling_price) - flt(self.total_package_price)
+            self.selling_price = flt(self.total_amount)
+        self.different_price = flt(self.selling_price) - flt(self.total_amount)
 
     def set_totals(self):
-        self.total_package_price = 0
-        self.total_package_qty = 0
+        self.total_amount = 0
+        self.total_selling_price = 0
+        self.total_items_qty = 0
         self.total_working_hours = 0
         selling_price = 0
         for row in self.package_services:
-            self.total_package_price += cint(row.qty) * flt(row.rate)
+            self.total_amount += cint(row.qty) * flt(row.rate)
+            self.total_selling_price += cint(row.qty) * flt(row.selling_rate)
             selling_price += cint(row.qty) * flt(row.selling_rate)
-            self.total_package_qty += cint(row.qty)
+            self.total_items_qty += cint(row.qty)
             self.total_working_hours += cint(row.qty) * flt(row.working_hours)
         if flt(self.selling_price) <= 0:
             self.selling_price = selling_price
