@@ -22,6 +22,20 @@ frappe.ui.form.on("Appointment", {
                 };
             }
         );
+        frm.set_query(
+            "service_item",
+            "custom_appointment_services",
+            function (doc, cdt, cdn) {
+                const row = locals[cdt][cdn];
+                return {
+                    filters: {
+                        service: row.service,
+                    },
+                    query:
+                        "retail.retail.doctype.pet_service_package.pet_service_package.service_item_query",
+                };
+            }
+        );
     },
     refresh(frm) {
         frm.trigger("set_label");
@@ -135,21 +149,21 @@ frappe.ui.form.on("Appointment", {
                 .removeClass("btn-default");
         }
     },
-    custom_vehicle(frm){
+    custom_vehicle(frm) {
         frappe.call({
-            method: 'set_vehicle_employees',
+            method: "set_vehicle_employees",
             doc: frm.doc,
-            args:{
+            args: {
                 vehicle: frm.doc.custom_vehicle || null,
             },
-            callback: function(r){
+            callback: function (r) {
                 frm.clear_table("custom_vehicle_assignment_employees");
-                (r.message || []).forEach(v => {
+                (r.message || []).forEach((v) => {
                     frm.add_child("custom_vehicle_assignment_employees", v);
                 });
                 frm.refresh_field("custom_vehicle_assignment_employees");
-            }
-        })
+            },
+        });
     },
     appointment_with(frm) {
         frm.trigger("set_label");
@@ -234,8 +248,12 @@ frappe.ui.form.on("Appointment", {
     custom_additional_discount(frm) {
         frm.trigger("update_total_price");
     },
-    update_total_pets(frm){
-        const total_pets = (new Set((frm.doc.custom_appointment_services || []).map(row => row.pet).filter( v => v))).size;
+    update_total_pets(frm) {
+        const total_pets = new Set(
+            (frm.doc.custom_appointment_services || [])
+                .map((row) => row.pet)
+                .filter((v) => v)
+        ).size;
         frm.set_value("custom_total_pets", total_pets);
         frm.refresh_field("custom_total_pets");
     },
@@ -288,12 +306,12 @@ frappe.ui.form.on("Appointment", {
         frm.set_value("custom_total_amount_to_pay", total_amount_to_pay);
         frm.refresh_field("custom_total_amount_to_pay");
     },
-    custom_send(frm){
+    custom_send(frm) {
         let mobile = frm.doc.customer_phone_number || "";
-        if(!mobile){
-            return
+        if (!mobile) {
+            return;
         }
-        if(!mobile.startsWith("+971") && !mobile.startsWith("00971")){
+        if (!mobile.startsWith("+971") && !mobile.startsWith("00971")) {
             mobile = "+971" + mobile;
         }
         let url = `https://wa.me/${mobile}?text=${frm.doc.custom_appointment_message}`;
@@ -323,28 +341,35 @@ frappe.ui.form.on("Appointment Service", {
     discount(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
-    async service(frm, cdt, cdn) {
+    async service_item(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
-        if (row.service) {
+        if (row.service_item) {
             frappe.call({
-                method: "fetch_service_item",
+                method: "fetch_service_item_subscription",
                 doc: frm.doc,
                 args: {
                     service: row.service,
-                    pet_type: row.pet_type,
-                    pet_size: row.pet_size,
+                    service_item: row.service_item,
                 },
                 callback: function (r) {
-                    row.service_item = (r.message && r.message.item) || "";
-                    row.price = (r.message && r.message.rate) || 0;
-                    frm.refresh_field("custom_appointment_services");
-                    frm.trigger("update_total_price");
+                    if (!r.message) {
+                        row.subscription = null;
+                        row.subscription_row = null;
+                        row.is_subscription = 0;
+                        return
+                    }
+
+                    const { name, row_name } = r.message;
+                    row.subscription = name;
+                    row.subscription_row = row_name;
+                    row.is_subscription = 1;
                 },
                 freeze: true,
             });
         } else {
-            row.service_item = null;
-            frm.trigger("update_total_price");
+            row.subscription = null;
+            row.subscription_row = null;
+            row.is_subscription = 0;
         }
     },
 });

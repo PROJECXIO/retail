@@ -60,13 +60,6 @@ class Appointment(BaseAppointment):
 
         if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
             frappe.throw(_("Select Google Calendar to which event should be synced."))
-        total_price, total_net_price, total_hours, total_amount_to_pay = (
-            self.check_discount_values()
-        )
-        self.custom_total_amount = total_price
-        self.custom_total_net_amount = total_net_price
-        self.custom_total_working_hours = total_hours
-        self.custom_total_amount_to_pay = total_amount_to_pay
 
         self.validate_groomer_rest_time()
         self.set_total_pets()
@@ -76,53 +69,7 @@ class Appointment(BaseAppointment):
         self.set_party_email()
 
     def before_submit(self):
-        self.load_packages_subscriptions()
         self.status = "Open"
-
-    def load_packages_subscriptions(self):
-        # this will load packages if customer is subscribed to any
-        # if qty is more than subscription will check other subscriptions and split items
-        for service in self.custom_appointment_services:
-            if not service.service or not service.service_item:
-                continue
-            PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
-            SubscriptionPackageService = frappe.qb.DocType(
-                "Subscription Package Service"
-            )
-            query = (
-                frappe.qb.from_(SubscriptionPackageService)
-                .left_join(PetPackageSubscription)
-                .on(PetPackageSubscription.name == SubscriptionPackageService.parent)
-                .select(
-                    PetPackageSubscription.name.as_("subscription"),
-                    PetPackageSubscription.sales_invoice,
-                    SubscriptionPackageService.name.as_("subscription_item"),
-                    SubscriptionPackageService.consumed_qty,
-                    SubscriptionPackageService.qty,
-                )
-                .where(
-                    (PetPackageSubscription.customer == self.party)
-                    & (PetPackageSubscription.docstatus == 1)
-                    & (SubscriptionPackageService.service == service.service)
-                    & (SubscriptionPackageService.service_item == service.service_item)
-                    & (
-                        SubscriptionPackageService.consumed_qty
-                        < SubscriptionPackageService.qty
-                    )
-                )
-            )
-            data = query.run(as_dict=True)
-            for row in data:
-                allowed_qty = row.qty - row.consumed_qty
-                new_row = {}
-                new_row.update(service.as_dict())
-
-                if allowed_qty >= 1:
-                    service.is_from_subscription = 1
-                    service.subscription = row.subscription
-                    service.subscription_item = row.subscription_item
-                    service.sales_invoice = row.sales_invoice
-                    break
 
     def on_cancel(self):
         self.db_set("status", "Cancelled")
@@ -178,19 +125,19 @@ class Appointment(BaseAppointment):
 
     def update_consumed_qty(self, qty=1):
         for service in self.custom_appointment_services:
-            if not service.subscription or not service.subscription_item:
+            if not service.subscription or not service.subscription_row:
                 continue
             exists = frappe.db.exists(
-                "Subscription Package Service",
-                {"name": service.subscription_item, "parent": service.subscription},
+                "Package Service Subscription Details",
+                {"name": service.subscription_row, "parent": service.subscription},
             )
             if not exists:
                 continue
-            doc = frappe.get_doc("Subscription Package Service", exists)
-            if doc.consumed_qty >= doc.qty:
+            doc = frappe.get_doc("Package Service Subscription Details", exists)
+            if doc.consumed_qty >= doc.package_qty:
                 continue
             consumed_qty = doc.consumed_qty + qty
-            if consumed_qty > doc.qty:
+            if consumed_qty > doc.package_qty:
                 continue
             if consumed_qty < 0:
                 continue
@@ -368,7 +315,7 @@ class Appointment(BaseAppointment):
             if (
                 not service.service
                 or not service.service_item
-                or (service.is_from_subscription and service.sales_invoice)
+                or (service.subscriped and service.sales_invoice)
             ):
                 continue
             doc = frappe.get_doc("Pet Service Item", service.service_item)
@@ -630,6 +577,33 @@ class Appointment(BaseAppointment):
             filters={"status": "Active", "vehicle": vehicle},
             fields=["employee", "employee_name", "assign_as"],
         )
+
+    @frappe.whitelist()
+    def fetch_service_item_subscription(self, service=None, service_item=None):
+        if self.appointment_with != "Customer" or service is None or service_item is None or not self.party:
+            return None
+
+        packages_with_item = frappe.get_all("Package Service", {"service": service, "service_item": service_item}, pluck="parent")
+        if len(packages_with_item) == 0:
+            return None
+        PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
+        PackageSubscriptionDetails = frappe.qb.DocType("Package Service Subscription Details")
+        query = (
+            frappe.qb.from_(PackageSubscriptionDetails)
+            .left_join(PetPackageSubscription)
+            .on(PetPackageSubscription.name==PackageSubscriptionDetails.parent)
+            .select(PetPackageSubscription.name, PackageSubscriptionDetails.name.as_("row_name"))
+            .where(
+                (PetPackageSubscription.customer==self.party)
+                & (PackageSubscriptionDetails.pet_service_package.isin(packages_with_item))
+                & (PackageSubscriptionDetails.package_qty > PackageSubscriptionDetails.consumed_qty)
+            )
+            .orderby(PetPackageSubscription.subscription_at)
+        )
+        data = query.run(as_dict=True)
+        if len(data) == 0:
+            return None
+        return data[0]
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):

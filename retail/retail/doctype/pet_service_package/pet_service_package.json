@@ -101,7 +101,7 @@
    "default": "1",
    "fieldname": "package_qty",
    "fieldtype": "Int",
-   "label": "Package Qty",
+   "label": "Number of Sessions",
    "non_negative": 1,
    "reqd": 1
   },
@@ -159,7 +159,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-11 13:24:53.714531",
+ "modified": "2025-11-12 12:16:35.857208",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",
