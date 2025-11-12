@@ -36,3 +36,10 @@ frappe.ui.form.on("Customer", {
         frappe.new_doc("Pet", {"customer": frm.doc.name});
     },
 });
+
+frappe.ui.form.on("Customer Address", {
+    custom_customer_addresses_add(frm, cdt, cdn){
+        const row = locals[cdt][cdn];
+        row.mobile_no = frm.doc.custom_mobile_no_2 || "";
+    }
+});

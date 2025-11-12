@@ -1,22 +1,11 @@
 frappe.ui.form.on("Pet Package Subscription", {
     refresh(frm) {
         frm.trigger("set_label");
-        frm.trigger("disable_items_table");
         if (frm.doc.docstatus == 1 && !frm.doc.sales_invoice) {
             frm.trigger("add_invoice_button");
         }
     },
 
-    disable_items_table(frm) {
-        const grid = frm.get_field("subscription_package_service").grid;
-        grid.cannot_add_rows = true;
-        grid.only_sortable = true;
-        grid.cannot_remove_rows = true;
-        grid.refresh();
-        grid.wrapper
-            .find(".grid-add-row, .grid-add-multiple-rows, .grid-footer")
-            .hide();
-    },
     selling_amount(frm) {
         frm.trigger("calculate_total_net_amount");
     },

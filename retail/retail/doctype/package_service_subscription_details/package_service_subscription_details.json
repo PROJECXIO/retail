@@ -85,6 +85,7 @@
    "fieldname": "consumed_qty",
    "fieldtype": "Int",
    "label": "Consumed Qty",
+   "no_copy": 1,
    "non_negative": 1,
    "read_only": 1
   }
@@ -93,7 +94,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-12 12:12:09.392422",
+ "modified": "2025-11-12 16:08:15.738973",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Package Service Subscription Details",
