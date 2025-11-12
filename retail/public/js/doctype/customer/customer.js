@@ -17,6 +17,7 @@ frappe.ui.form.on("Customer", {
                 <img src="${pet.pet_image || '/assets/retail/images/logo.jpeg'}" alt="Pet Avatar" class="pet-avatar">
                 <div class="pet-info">
                 <h3 class="pet-name">${pet.pet_name}</h3>
+                <p class="pet-type">${__("Microchip No.")}: ${pet.microchip_number}</p>
                 <p class="pet-type">${__("Type")}: ${pet.pet_type}</p>
                 <p class="pet-dob">${__("Date of Birth")}: ${pet.date_of_birth || 'N/A'}</p>
                 <p class="pet-vaccine">${__("Vaccine Expire")}: <span class="${color}">${pet.last_vaccine_exp_date}</span></p>
