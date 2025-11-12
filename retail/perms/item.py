@@ -3,21 +3,20 @@ import frappe
 # Role if user has it will restrict items access
 RESTRICTED_ROLE = "Accounts Viewer"
 
+
 def has_permission(doc, user=None, ptype=None):
     if not ptype:
         ptype = "read"
     if not user:
         user = frappe.session.user
     has_role = (user != "Administrator") and (RESTRICTED_ROLE in frappe.get_roles(user))
-    if ptype=="read" and has_role:
+    if ptype == "read" and has_role:
         companies = frappe.get_list("Company", pluck="name")
         ItemDefault = frappe.qb.DocType("Item Default")
         data = (
             frappe.qb.from_(ItemDefault)
             .select(ItemDefault.parent)
-            .where(
-                ItemDefault.company.isin(companies)
-            )
+            .where(ItemDefault.company.isin(companies))
         ).run(pluck="parent")
         if len(data) > 0:
             return doc.name in data
@@ -25,6 +24,7 @@ def has_permission(doc, user=None, ptype=None):
     return frappe.has_permission(
         doctype="Item", doc=doc, ptype=ptype, user=frappe.session.user
     )
+
 
 def get_permission_query_conditions(user):
     if not user:
@@ -37,9 +37,7 @@ def get_permission_query_conditions(user):
         data = (
             frappe.qb.from_(ItemDefault)
             .select(ItemDefault.parent)
-            .where(
-                ItemDefault.company.isin(companies)
-            )
+            .where(ItemDefault.company.isin(companies))
         ).run(pluck="parent")
         if len(data) > 0:
             data = [f"'{d}'" for d in data]

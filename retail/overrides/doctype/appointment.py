@@ -138,7 +138,7 @@ class Appointment(BaseAppointment):
                 continue
             if qty < 0 and doc.consumed_qty == 0:
                 continue
-            
+
             consumed_qty = doc.consumed_qty + qty
             if consumed_qty > doc.package_qty:
                 continue
@@ -583,7 +583,7 @@ class Appointment(BaseAppointment):
             return frappe.get_all(
                 "Vehicle Assignment Employee",
                 filters={"parent": assignments[0].name},
-                fields="*"
+                fields="*",
             )
         frappe.msgprint(_("There is employees assigned to vehicle {}").format(vehicle))
         return []
@@ -650,10 +650,12 @@ class Appointment(BaseAppointment):
             for d in data:
                 if r.subscription == d.name and r.subscription_row == d.row_name:
                     consumed_qty = d.consumed_qty + 1
-                    d.update({
-                        "consumed_qty": consumed_qty,
-                    })
-        data = list(filter(lambda x : x.consumed_qty < x.package_qty, data))
+                    d.update(
+                        {
+                            "consumed_qty": consumed_qty,
+                        }
+                    )
+        data = list(filter(lambda x: x.consumed_qty < x.package_qty, data))
         if len(data) == 0:
             return {
                 "price": price,
@@ -668,16 +670,22 @@ class Appointment(BaseAppointment):
                 row = p
                 break
         if row:
-            diff_percent = (row.selling_amount - row.total_amount) * 100 / row.total_amount
+            diff_percent = (
+                (row.selling_amount - row.total_amount) * 100 / row.total_amount
+            )
             price = price - (diff_percent * price / 100)
             price = price - (row.discount * price / 100)
-            data.update({
-                "price": price,
-            })
+            data.update(
+                {
+                    "price": price,
+                }
+            )
         else:
-            data.update({
-                "price": price,
-            })
+            data.update(
+                {
+                    "price": price,
+                }
+            )
 
         return data
 

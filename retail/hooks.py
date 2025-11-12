@@ -136,11 +136,11 @@ before_install = "retail.install.before_install"
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
-	"Item": "retail.perms.item.get_permission_query_conditions",
+    "Item": "retail.perms.item.get_permission_query_conditions",
 }
 
 has_permission = {
-	"Item": "retail.perms.item.has_permission",
+    "Item": "retail.perms.item.has_permission",
 }
 
 # DocType Class
