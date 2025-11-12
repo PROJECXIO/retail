@@ -69,7 +69,8 @@
    "in_standard_filter": 1,
    "label": "Pet Breed",
    "options": "Pet Breed",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "sex",
@@ -98,7 +99,8 @@
    "in_standard_filter": 1,
    "label": "Pet Size",
    "options": "Pet Size",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "owner_details_section",
@@ -112,7 +114,8 @@
    "in_standard_filter": 1,
    "label": "Pet Type",
    "options": "Pet Type",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "pet_vaccinations_log_section",
@@ -139,14 +142,17 @@
   {
    "fieldname": "microchip_number",
    "fieldtype": "Data",
-   "label": "Microchip Number"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Microchip Number",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "image_field": "pet_image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-23 17:01:36.892797",
+ "modified": "2025-11-12 13:27:06.577101",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet",
