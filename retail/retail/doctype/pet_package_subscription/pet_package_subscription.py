@@ -4,19 +4,40 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, cint, getdate
+from frappe.utils import flt, getdate
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
 
 class PetPackageSubscription(Document):
     def validate(self):
         self.merge_pkgs()
-        self.update_total_price()
+        self.calculate_totals()
 
-        # self.total_amount, self.total_net_amount = self.calculate_totals_amounts()
-        # if(self.selling_price <= 0):
-        #     self.selling_price = self.total_net_amount
-        # self.total_qty, self.total_extra_qty, self.total_net_qty = self.calculate_totals_qty()
+    def calculate_totals(self):
+        self.total_packages_amount = 0
+        self.total_selling_amount = 0
+        self.total_net_amount = 0
+        self.total_working_hours = 0
+
+        for row in self.package_services or []:
+            self.total_packages_amount += flt(row.total_amount)
+            self.total_selling_amount += flt(row.selling_amount)
+            self.total_net_amount += (
+                flt(row.selling_amount)
+                - (flt(row.discount) * flt(row.selling_amount)) / 100
+            )
+            self.total_working_hours += flt(row.working_hours)
+        if flt(self.selling_amount) <= 0:
+            self.selling_amount = flt(self.total_net_amount)
+        net_total = (
+            flt(self.selling_amount)
+            - (flt(self.additional_discount) * flt(self.selling_amount)) / 100
+        )
+        print(net_total)
+        print(net_total)
+        print(net_total)
+        print(net_total)
+        print(net_total)
 
     def before_submit(self):
         self.status = "Open"
@@ -36,8 +57,6 @@ class PetPackageSubscription(Document):
             u.set("idx", idx)
             self.append("package_services", u)
 
-
-
     @frappe.whitelist()
     def create_invoice(self, due_date=False, payments_details=None):
         payments_details = payments_details or []
@@ -47,7 +66,7 @@ class PetPackageSubscription(Document):
         invoice.posting_date = self.subscription_at
         invoice.due_date = due_date or getdate()
 
-        for service in (self.subscription_package_service or []):
+        for service in self.subscription_package_service or []:
             if not service.service_item:
                 continue
             item_doc = frappe.get_doc("Pet Service Item", service.service_item)
@@ -55,7 +74,7 @@ class PetPackageSubscription(Document):
             qty = flt(service.qty)
             unit_rate = flt(service.selling_rate) if qty else flt(service.rate)
 
-            si_item ={
+            si_item = {
                 "item_code": item_doc.item,
                 "uom": item_doc.uom,
                 "qty": qty,
@@ -96,39 +115,3 @@ class PetPackageSubscription(Document):
 
         self.db_set("sales_invoice", invoice.name)
         return "ok"
-    def update_total_price(self):
-        pkg_discounts = self.build_package_discount_map()
-        self.total_packages_amount = 0.0
-        self.total_selling_amount = 0.0
-        self.total_net_amount = 0.0
-        for r in (self.package_services or []):
-            self.total_packages_amount += flt(r.package_price)
-            self.total_selling_amount += flt(r.selling_rate)
-            discounts = [0.0, 0.0]
-            if r.pet_service_package:
-                discounts = pkg_discounts[r.pet_service_package] or [0.0, 0.0]
-                discount_value = flt(r.package_price) - (flt(r.package_price) * discounts[0]) / 100
-            discount_value = flt(discount_value) - (discounts[1] * flt(discount_value)) / 100
-            self.total_net_amount += discount_value
-        total_qty = cint(self.subscription_qty)
-        if flt(self.selling_rate) <= 0:
-            self.selling_rate = self.total_net_amount
-        selling_amount = total_qty * self.selling_rate
-        net = selling_amount - (selling_amount * flt(self.additional_discount)) / 100
-        self.total_net_selling_amount = net
-
-    def compute_package_discount_factor(self, pkgRow):
-        package_price = flt(pkgRow.package_price or 0)
-        selling = flt(pkgRow.selling_rate or 0)
-        rate_diff_discount = ((package_price - selling) / package_price) * 100.0
-        pkg_discount = flt(pkgRow.discount or 0)
-        return [rate_diff_discount, pkg_discount]
-
-    def build_package_discount_map(self):
-        map ={}
-        for row in (self.package_services or []):
-            if row.pet_service_package:
-                map.update({
-                    f"{row.pet_service_package}": self.compute_package_discount_factor(row)
-                })
-        return map

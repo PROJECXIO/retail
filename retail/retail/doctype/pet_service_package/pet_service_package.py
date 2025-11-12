@@ -10,24 +10,20 @@ from frappe.desk.reportview import get_filters_cond, get_match_cond
 class PetServicePackage(Document):
     def validate(self):
         self.set_totals()
-        if flt(self.selling_price) <= 0:
-            self.selling_price = flt(self.total_amount)
-        self.different_price = flt(self.selling_price) - flt(self.total_amount)
 
     def set_totals(self):
-        self.total_amount = 0
-        self.total_selling_price = 0
-        self.total_items_qty = 0
+        self.total_services_rate = 0
         self.total_working_hours = 0
-        selling_price = 0
         for row in self.package_services:
-            self.total_amount += cint(row.qty) * flt(row.rate)
-            self.total_selling_price += cint(row.qty) * flt(row.selling_rate)
-            selling_price += cint(row.qty) * flt(row.selling_rate)
-            self.total_items_qty += cint(row.qty)
-            self.total_working_hours += cint(row.qty) * flt(row.working_hours)
-        if flt(self.selling_price) <= 0:
-            self.selling_price = selling_price
+            self.total_services_rate += flt(row.selling_rate)
+            self.total_working_hours += flt(row.working_hours)
+        self.total_services_amount = flt(self.total_services_rate) * cint(
+            self.package_qty
+        )
+        if flt(self.total_selling_amount) <= 0:
+            self.total_selling_amount = self.total_services_amount
+        self.different_price = self.total_selling_amount - self.total_services_amount
+
 
 # searches for valid services
 @frappe.whitelist()
@@ -39,7 +35,7 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
     valid_items_both = set()
     valid_items_type_only = set()
     valid_items_size_only = set()
-    
+
     if pet_type and pet_size:
         valid_items_both = set(
             frappe.db.sql(
@@ -82,7 +78,7 @@ def service_query(doctype, txt, searchfield, start, page_len, filters):
                 pluck="parent",
             )
         )
-    
+
     valid_items = valid_items_both | valid_items_type_only | valid_items_size_only
     if len(valid_items) == 0:
         return []
@@ -149,7 +145,9 @@ def service_item_query(doctype, txt, searchfield, start, page_len, filters):
 		limit %(page_len)s offset %(start)s""".format(
             **{
                 "fields": ", ".join(item_fields),
-                "fcond": get_filters_cond("Pet Service Item Detail", item_filters, [], ignore_permissions=True),
+                "fcond": get_filters_cond(
+                    "Pet Service Item Detail", item_filters, [], ignore_permissions=True
+                ),
                 "mcond": get_match_cond("Pet Service Item Detail"),
             }
         ),

@@ -17,7 +17,12 @@ frappe.ui.form.on("Pet Package Subscription", {
             .find(".grid-add-row, .grid-add-multiple-rows, .grid-footer")
             .hide();
     },
-
+    selling_amount(frm) {
+        frm.trigger("calculate_total_net_amount");
+    },
+    additional_discount(frm) {
+        frm.trigger("calculate_total_net_amount");
+    },
     add_invoice_button(frm) {
         frm.add_custom_button(__("Prepare Invoice"), () => {
             const table_fields = [
@@ -90,25 +95,42 @@ frappe.ui.form.on("Pet Package Subscription", {
             dialog.show();
         });
     },
+    calculate_total_net_amount(frm) {
+        frm.set_value(
+            "total_net_selling_amount",
+            flt(frm.doc.selling_amount) -
+            (flt(frm.doc.additional_discount) * flt(frm.doc.selling_amount)) / 100
+        );
+    },
+    calculate_totals(frm) {
+        let total_packages_amount = 0;
+        let total_selling_amount = 0;
+        let total_net_amount = 0;
+        let total_working_hours = 0;
+        (frm.doc.package_services || []).forEach((row) => {
+            total_packages_amount += flt(row.total_amount);
+            total_selling_amount += flt(row.selling_amount);
+            total_net_amount +=
+                flt(row.selling_amount) -
+                (flt(row.discount) * flt(row.selling_amount)) / 100;
+            total_working_hours += flt(row.working_hours);
+        });
 
-    selling_rate(frm) {
-        frm.trigger("update_final_total");
-    },
-    subscription_qty(frm) {
-        update_total_price(frm);
-        frm.trigger("update_final_total");
-    },
-    additional_discount(frm) {
-        frm.trigger("update_final_total");
-    },
-    update_final_total(frm) {
-        const selling_amount =
-            cint(frm.doc.subscription_qty || 0) * flt(frm.doc.selling_rate || 0);
-        const net = selling_amount - (selling_amount * flt(frm.doc.additional_discount || 0)) / 100;
-        frm.set_value("selling_amount", selling_amount);
-        frm.set_value("total_net_selling_amount", net);
+        frm.set_value("total_packages_amount", total_packages_amount);
+        frm.set_value("total_selling_amount", total_selling_amount);
+        frm.set_value("total_net_amount", total_net_amount);
+        frm.set_value("grand_total", total_net_amount);
+        frm.set_value("outstanding_amount", total_net_amount);
+        frm.set_value("selling_amount", total_net_amount);
+        frm.set_value("total_working_hours", total_working_hours);
 
-        frm.refresh_fields(["total_net_selling_amount", "selling_amount"]);
+        frm.refresh_fields([
+            "total_packages_amount",
+            "total_selling_amount",
+            "total_net_amount",
+            "total_working_hours",
+            "selling_amount",
+        ]);
     },
 });
 
@@ -146,74 +168,18 @@ frappe.ui.form.on("Package Service Subscription Details", {
             });
             return;
         }
-        update_total_price(frm);
+        frm.trigger("calculate_totals");
     },
 
     package_services_remove(frm) {
-        update_total_price(frm);
+        frm.trigger("calculate_totals");
     },
 
     discount(frm) {
-        update_total_price(frm);
+        frm.trigger("calculate_totals");
     },
 
     selling_rate(frm) {
-        update_total_price(frm);
+        frm.trigger("calculate_totals");
     },
 });
-
-function compute_package_discount_factor(pkgRow) {
-    const package_price = flt(pkgRow.package_price || 0);
-    const selling = flt(pkgRow.selling_rate || 0);
-    const rate_diff_discount =
-        ((package_price - selling) / package_price) * 100.0;
-    const pkg_discount = flt(pkgRow.discount || 0);
-    return [rate_diff_discount, pkg_discount];
-}
-
-function build_package_discount_map(frm) {
-    const map = {};
-    (frm.doc.package_services || []).forEach((row) => {
-        if (row.pet_service_package) {
-            map[row.pet_service_package] = compute_package_discount_factor(row);
-        }
-    });
-    return map;
-}
-
-function update_total_price(frm, update_selling_amount = true) {
-    const pkg_discounts = build_package_discount_map(frm);
-    let total_packages_amount = 0.0;
-    let total_selling_amount = 0.0;
-    let total_net_amount = 0.0;
-    (frm.doc.package_services || []).forEach((r) => {
-        total_packages_amount += flt(r.package_price);
-        total_selling_amount += flt(r.selling_rate);
-        let discounts = [0.0, 0.0];
-        if (r.pet_service_package) {
-            discounts = pkg_discounts[r.pet_service_package] || [0.0, 0.0];
-        }
-        let discount_value =
-            flt(r.package_price) - (flt(r.package_price) * discounts[0]) / 100;
-        discount_value =
-            flt(discount_value) - (discounts[1] * flt(discount_value)) / 100;
-        total_net_amount += discount_value;
-    });
-    const total_qty = cint(frm.doc.subscription_qty);
-    frm.set_value("total_packages_amount", total_packages_amount);
-    frm.set_value("total_selling_amount", total_selling_amount);
-    frm.set_value("total_net_amount", total_net_amount);
-
-    const fields = [
-        "total_packages_amount",
-        "total_selling_amount",
-        "total_net_amount",
-    ];
-    if (update_selling_amount) {
-        frm.set_value("selling_rate", total_net_amount);
-        frm.set_value("selling_amount", total_qty * total_net_amount);
-        fields.push("selling_rate");
-        fields.push("selling_amount");
-    }
-    frm.refresh_fields(fields);
-}

@@ -12,6 +12,7 @@
   "mobile_no",
   "email_address",
   "column_break_liqq",
+  "company",
   "subscription_at",
   "sales_invoice",
   "amended_from",
@@ -23,17 +24,18 @@
   "total_selling_amount",
   "column_break_slbe",
   "total_net_amount",
-  "subscription_details_section",
-  "subscription_package_service",
+  "column_break_euco",
+  "total_working_hours",
   "additional_discount_section",
   "additional_discount",
   "totals_section",
   "subscription_qty",
   "status",
+  "grand_total",
   "column_break_jngb",
-  "selling_rate",
   "selling_amount",
-  "total_net_selling_amount"
+  "total_net_selling_amount",
+  "outstanding_amount"
  ],
  "fields": [
   {
@@ -82,11 +84,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "subscription_details_section",
-   "fieldtype": "Section Break",
-   "label": "Subscription Details"
-  },
-  {
    "default": "Today",
    "fieldname": "subscription_at",
    "fieldtype": "Date",
@@ -128,12 +125,6 @@
   {
    "fieldname": "column_break_jngb",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "subscription_package_service",
-   "fieldtype": "Table",
-   "label": "Subscription Details",
-   "options": "Subscription Package Service"
   },
   {
    "fieldname": "sales_invoice",
@@ -201,18 +192,45 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "selling_rate",
-   "fieldtype": "Currency",
-   "label": "Selling Rate",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "selling_amount",
    "fieldtype": "Currency",
    "label": "Selling Amount",
    "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_euco",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_working_hours",
+   "fieldtype": "Int",
+   "label": "Total Working Hours",
+   "non_negative": 1,
    "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
    "reqd": 1
   }
  ],
@@ -220,7 +238,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-10 15:17:51.836271",
+ "modified": "2025-11-11 16:46:53.662764",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",
