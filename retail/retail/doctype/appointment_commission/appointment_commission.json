@@ -6,26 +6,36 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
-  "driver_commission",
+  "commissions_section",
   "groomer_commission",
+  "column_break_nkly",
+  "driver_commission",
+  "column_break_sauu",
   "other_commission",
-  "column_break_vjmr",
+  "section_break_invl",
   "salary_component",
-  "add_on"
+  "column_break_dfkk",
+  "add_on",
+  "tips_section",
+  "groomer_tips",
+  "column_break_hnma",
+  "driver_tips",
+  "column_break_lqhq",
+  "other_tips"
  ],
  "fields": [
   {
    "default": "0",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enabled Commisions & Tips"
   },
   {
    "default": "0.00",
    "depends_on": "enabled",
    "fieldname": "driver_commission",
    "fieldtype": "Percent",
-   "label": "Driver Commission",
+   "label": "Driver (%)",
    "mandatory_depends_on": "enabled",
    "precision": "2"
   },
@@ -34,7 +44,7 @@
    "depends_on": "enabled",
    "fieldname": "groomer_commission",
    "fieldtype": "Percent",
-   "label": "Groomer Commission",
+   "label": "Groomer (%)",
    "mandatory_depends_on": "enabled",
    "precision": "2"
   },
@@ -43,13 +53,9 @@
    "depends_on": "enabled",
    "fieldname": "other_commission",
    "fieldtype": "Percent",
-   "label": "Other Commission",
+   "label": "Other (%)",
    "mandatory_depends_on": "enabled",
    "precision": "2"
-  },
-  {
-   "fieldname": "column_break_vjmr",
-   "fieldtype": "Column Break"
   },
   {
    "depends_on": "enabled",
@@ -66,13 +72,74 @@
    "label": "Add On",
    "mandatory_depends_on": "enabled",
    "options": "\nSubmit Appointment\nComplete Appointment"
+  },
+  {
+   "fieldname": "tips_section",
+   "fieldtype": "Section Break",
+   "label": "Tips"
+  },
+  {
+   "default": "0.00",
+   "depends_on": "enabled",
+   "fieldname": "groomer_tips",
+   "fieldtype": "Percent",
+   "label": "Groomer (%)",
+   "mandatory_depends_on": "enabled",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_hnma",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0.00",
+   "depends_on": "enabled",
+   "fieldname": "driver_tips",
+   "fieldtype": "Percent",
+   "label": "Driver (%)",
+   "mandatory_depends_on": "enabled",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_lqhq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0.00",
+   "depends_on": "enabled",
+   "fieldname": "other_tips",
+   "fieldtype": "Percent",
+   "label": "Other (%)",
+   "mandatory_depends_on": "enabled",
+   "precision": "2"
+  },
+  {
+   "fieldname": "commissions_section",
+   "fieldtype": "Section Break",
+   "label": "Commissions"
+  },
+  {
+   "fieldname": "column_break_nkly",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_sauu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_invl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_dfkk",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-29 15:16:52.397349",
+ "modified": "2025-11-12 13:54:36.969478",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Appointment Commission",
