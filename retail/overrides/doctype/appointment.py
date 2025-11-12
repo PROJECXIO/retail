@@ -572,31 +572,59 @@ class Appointment(BaseAppointment):
     def set_vehicle_employees(self, vehicle=None):
         if not vehicle:
             return []
-        return frappe.get_all(
+        assignments = frappe.get_all(
             "Vehicle Assignment",
             filters={"status": "Active", "vehicle": vehicle},
-            fields=["employee", "employee_name", "assign_as"],
         )
+        if len(assignments) > 0:
+            return frappe.get_all(
+                "Vehicle Assignment Employee",
+                filters={"parent": assignments[0].name},
+                fields="*"
+            )
+        frappe.msgprint(_("There is employees assigned to vehicle {}").format(vehicle))
+        return []
 
     @frappe.whitelist()
     def fetch_service_item_subscription(self, service=None, service_item=None):
-        if self.appointment_with != "Customer" or service is None or service_item is None or not self.party:
+        if (
+            self.appointment_with != "Customer"
+            or service is None
+            or service_item is None
+            or not self.party
+        ):
             return None
 
-        packages_with_item = frappe.get_all("Package Service", {"service": service, "service_item": service_item}, pluck="parent")
+        packages_with_item = frappe.get_all(
+            "Package Service",
+            {"service": service, "service_item": service_item},
+            pluck="parent",
+        )
         if len(packages_with_item) == 0:
             return None
         PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
-        PackageSubscriptionDetails = frappe.qb.DocType("Package Service Subscription Details")
+        PackageSubscriptionDetails = frappe.qb.DocType(
+            "Package Service Subscription Details"
+        )
         query = (
             frappe.qb.from_(PackageSubscriptionDetails)
             .left_join(PetPackageSubscription)
-            .on(PetPackageSubscription.name==PackageSubscriptionDetails.parent)
-            .select(PetPackageSubscription.name, PackageSubscriptionDetails.name.as_("row_name"))
+            .on(PetPackageSubscription.name == PackageSubscriptionDetails.parent)
+            .select(
+                PetPackageSubscription.name,
+                PackageSubscriptionDetails.name.as_("row_name"),
+            )
             .where(
-                (PetPackageSubscription.customer==self.party)
-                & (PackageSubscriptionDetails.pet_service_package.isin(packages_with_item))
-                & (PackageSubscriptionDetails.package_qty > PackageSubscriptionDetails.consumed_qty)
+                (PetPackageSubscription.customer == self.party)
+                & (
+                    PackageSubscriptionDetails.pet_service_package.isin(
+                        packages_with_item
+                    )
+                )
+                & (
+                    PackageSubscriptionDetails.package_qty
+                    > PackageSubscriptionDetails.consumed_qty
+                )
             )
             .orderby(PetPackageSubscription.subscription_at)
         )
