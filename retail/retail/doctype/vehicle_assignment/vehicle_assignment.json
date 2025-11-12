@@ -8,12 +8,11 @@
  "field_order": [
   "section_break_gjic",
   "vehicle",
-  "employee",
-  "employee_name",
   "column_break_qrmz",
   "assignment_date",
   "status",
-  "assign_as"
+  "section_break_utfe",
+  "employees"
  ],
  "fields": [
   {
@@ -30,22 +29,6 @@
    "options": "Vehicle",
    "reqd": 1,
    "set_only_once": 1
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Employee",
-   "options": "Employee",
-   "reqd": 1,
-   "set_only_once": 1
-  },
-  {
-   "fetch_from": "employee.employee_name",
-   "fieldname": "employee_name",
-   "fieldtype": "Read Only",
-   "label": "Employee Name"
   },
   {
    "fieldname": "column_break_qrmz",
@@ -73,19 +56,22 @@
    "reqd": 1
   },
   {
-   "fieldname": "assign_as",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Assign as",
-   "options": "\nGroomer\nDriver\nOther",
+   "fieldname": "section_break_utfe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Assigned Employees",
+   "options": "Vehicle Assignment Employee",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-29 13:56:58.348015",
+ "modified": "2025-11-12 13:37:14.033526",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Vehicle Assignment",
@@ -171,10 +157,10 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "search_fields": "employee, employee_name, vehicle",
+ "search_fields": "vehicle",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "employee_name"
+ "title_field": "vehicle"
 }
