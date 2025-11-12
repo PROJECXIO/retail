@@ -1,10 +1,11 @@
 from erpnext.stock.doctype.item.item import Item as BaseItem
 
+
 class Item(BaseItem):
     def validate(self):
         super().validate()
         self.set_search_field()
-    
+
     def set_search_field(self):
         search = []
         if isinstance(self.name, str):

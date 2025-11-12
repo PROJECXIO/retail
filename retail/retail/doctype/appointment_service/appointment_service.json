@@ -16,10 +16,9 @@
   "column_break_rcch",
   "discount_as",
   "discount",
-  "is_from_subscription",
+  "is_subscription",
   "subscription",
-  "subscription_item",
-  "sales_invoice"
+  "subscription_row"
  ],
  "fields": [
   {
@@ -78,7 +77,6 @@
    "in_list_view": 1,
    "label": "Service Item",
    "options": "Pet Service Item",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -99,32 +97,24 @@
    "precision": "2"
   },
   {
-   "default": "0",
-   "fieldname": "is_from_subscription",
-   "fieldtype": "Check",
-   "label": "Is from Subscription",
-   "read_only": 1
-  },
-  {
-   "depends_on": "is_from_subscription",
+   "depends_on": "is_subscription",
    "fieldname": "subscription",
    "fieldtype": "Data",
    "label": "Subscription",
    "read_only": 1
   },
   {
-   "depends_on": "is_from_subscription",
-   "fieldname": "subscription_item",
+   "depends_on": "is_subscription",
+   "fieldname": "subscription_row",
    "fieldtype": "Data",
-   "label": "Subscription Item",
+   "label": "Subscription Row",
    "read_only": 1
   },
   {
-   "depends_on": "is_from_subscription",
-   "fieldname": "sales_invoice",
-   "fieldtype": "Link",
-   "label": "Subscription Invoice",
-   "options": "Sales Invoice",
+   "default": "0",
+   "fieldname": "is_subscription",
+   "fieldtype": "Check",
+   "label": "Is from Subscription",
    "read_only": 1
   }
  ],
@@ -132,7 +122,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-20 12:50:07.155869",
+ "modified": "2025-11-12 13:03:53.749987",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Appointment Service",

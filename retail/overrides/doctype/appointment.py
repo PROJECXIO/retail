@@ -60,13 +60,6 @@ class Appointment(BaseAppointment):
 
         if self.custom_sync_with_google_calendar and not self.custom_google_calendar:
             frappe.throw(_("Select Google Calendar to which event should be synced."))
-        total_price, total_net_price, total_hours, total_amount_to_pay = (
-            self.check_discount_values()
-        )
-        self.custom_total_amount = total_price
-        self.custom_total_net_amount = total_net_price
-        self.custom_total_working_hours = total_hours
-        self.custom_total_amount_to_pay = total_amount_to_pay
 
         self.validate_groomer_rest_time()
         self.set_total_pets()
@@ -76,53 +69,7 @@ class Appointment(BaseAppointment):
         self.set_party_email()
 
     def before_submit(self):
-        self.load_packages_subscriptions()
         self.status = "Open"
-
-    def load_packages_subscriptions(self):
-        # this will load packages if customer is subscribed to any
-        # if qty is more than subscription will check other subscriptions and split items
-        for service in self.custom_appointment_services:
-            if not service.service or not service.service_item:
-                continue
-            PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
-            SubscriptionPackageService = frappe.qb.DocType(
-                "Subscription Package Service"
-            )
-            query = (
-                frappe.qb.from_(SubscriptionPackageService)
-                .left_join(PetPackageSubscription)
-                .on(PetPackageSubscription.name == SubscriptionPackageService.parent)
-                .select(
-                    PetPackageSubscription.name.as_("subscription"),
-                    PetPackageSubscription.sales_invoice,
-                    SubscriptionPackageService.name.as_("subscription_item"),
-                    SubscriptionPackageService.consumed_qty,
-                    SubscriptionPackageService.qty,
-                )
-                .where(
-                    (PetPackageSubscription.customer == self.party)
-                    & (PetPackageSubscription.docstatus == 1)
-                    & (SubscriptionPackageService.service == service.service)
-                    & (SubscriptionPackageService.service_item == service.service_item)
-                    & (
-                        SubscriptionPackageService.consumed_qty
-                        < SubscriptionPackageService.qty
-                    )
-                )
-            )
-            data = query.run(as_dict=True)
-            for row in data:
-                allowed_qty = row.qty - row.consumed_qty
-                new_row = {}
-                new_row.update(service.as_dict())
-
-                if allowed_qty >= 1:
-                    service.is_from_subscription = 1
-                    service.subscription = row.subscription
-                    service.subscription_item = row.subscription_item
-                    service.sales_invoice = row.sales_invoice
-                    break
 
     def on_cancel(self):
         self.db_set("status", "Cancelled")
@@ -136,7 +83,10 @@ class Appointment(BaseAppointment):
             self.update_all_related_appointments()
         self.update_consumed_qty(qty=1)
         add_commission = frappe.get_single("Appointment Commission")
-        if cint(add_commission.enabled) == 1 and add_commission.add_on == "Submit Appointment":
+        if (
+            cint(add_commission.enabled) == 1
+            and add_commission.add_on == "Submit Appointment"
+        ):
             self.add_commissions(add_commission)
 
     def add_commissions(self, settings):
@@ -152,7 +102,7 @@ class Appointment(BaseAppointment):
                 commission = flt(settings.driver_commission)
             elif vae.assign_as == "Other":
                 commission = flt(settings.other_commission)
-            
+
             if commission <= 0:
                 continue
 
@@ -161,56 +111,70 @@ class Appointment(BaseAppointment):
                 continue
             additional_salary = frappe.new_doc("Additional Salary")
             company = frappe.db.get_value("Employee", employee, "company")
-            additional_salary.update({
-                "employee": employee,
-                "company": company,
-                "salary_component": salary_component,
-                "amount": amount,
-                "payroll_date": add_to_date(getdate(self.scheduled_time), months=1)
-            })
+            additional_salary.update(
+                {
+                    "employee": employee,
+                    "company": company,
+                    "salary_component": salary_component,
+                    "amount": amount,
+                    "payroll_date": add_to_date(getdate(self.scheduled_time), months=1),
+                }
+            )
             additional_salary.flags.ignore_permissions = True
             additional_salary.save()
-            
 
     def update_consumed_qty(self, qty=1):
         for service in self.custom_appointment_services:
-            if not service.subscription or not service.subscription_item:
+            if not service.subscription or not service.subscription_row:
                 continue
             exists = frappe.db.exists(
-                "Subscription Package Service",
-                {"name": service.subscription_item, "parent": service.subscription},
+                "Package Service Subscription Details",
+                {"name": service.subscription_row, "parent": service.subscription},
             )
             if not exists:
                 continue
-            doc = frappe.get_doc("Subscription Package Service", exists)
-            if doc.consumed_qty >= doc.qty:
+            doc = frappe.get_doc("Package Service Subscription Details", exists)
+            if doc.consumed_qty >= doc.package_qty:
                 continue
             consumed_qty = doc.consumed_qty + qty
-            if consumed_qty > doc.qty:
+            if consumed_qty > doc.package_qty:
                 continue
             if consumed_qty < 0:
                 continue
             doc.db_set("consumed_qty", consumed_qty, update_modified=False)
 
     def set_total_pets(self):
-        self.custom_total_pets = len(set(filter(lambda x: x, map(lambda x: x.pet, self.custom_appointment_services))))
+        self.custom_total_pets = len(
+            set(
+                filter(
+                    lambda x: x, map(lambda x: x.pet, self.custom_appointment_services)
+                )
+            )
+        )
 
     def set_booking_message(self):
-        template = frappe.db.get_single_value("Appointment Booking Settings", "custom_booking_template_message") or ""
+        template = (
+            frappe.db.get_single_value(
+                "Appointment Booking Settings", "custom_booking_template_message"
+            )
+            or ""
+        )
         context = self.as_dict()
         pets_services = []
         for row in self.custom_appointment_services:
             pet_name = frappe.db.get_value("Pet", row.pet, "pet_name")
             pets_services.append(f"{pet_name} - {row.service}")
         pets_services = "\n".join(pets_services)
-        context.update({
-            "pets_services": pets_services,
-        })
+        context.update(
+            {
+                "pets_services": pets_services,
+            }
+        )
         template_message = frappe.render_template(template, context=context)
         self.custom_appointment_message = template_message
 
     def validate_groomer_rest_time(self):
-        #TODO(fix validations)
+        # TODO(fix validations)
         return
         if not self.custom_groomer:
             return
@@ -351,7 +315,7 @@ class Appointment(BaseAppointment):
             if (
                 not service.service
                 or not service.service_item
-                or (service.is_from_subscription and service.sales_invoice)
+                or (service.subscriped and service.sales_invoice)
             ):
                 continue
             doc = frappe.get_doc("Pet Service Item", service.service_item)
@@ -414,7 +378,10 @@ class Appointment(BaseAppointment):
         self.db_set("status", "Completed")
         self.db_set("custom_sales_invoice", invoice.name)
         add_commission = frappe.get_single("Appointment Commission")
-        if cint(add_commission.enabled) == 1 and add_commission.get == "Complete Appointment":
+        if (
+            cint(add_commission.enabled) == 1
+            and add_commission.get == "Complete Appointment"
+        ):
             self.add_commissions(add_commission)
         if not update_ends_time:
             return "ok"
@@ -507,7 +474,9 @@ class Appointment(BaseAppointment):
         self.communication = communication.name
 
     def update_communication(
-        self, participant, communication,
+        self,
+        participant,
+        communication,
     ):
         communication.communication_medium = "Event"
         communication.subject = self.custom_subject
@@ -603,15 +572,45 @@ class Appointment(BaseAppointment):
     def set_vehicle_employees(self, vehicle=None):
         if not vehicle:
             return []
-        return frappe.get_all("Vehicle Assignment", filters={"status": "Active", "vehicle": vehicle}, fields=["employee", "employee_name", "assign_as"])
+        return frappe.get_all(
+            "Vehicle Assignment",
+            filters={"status": "Active", "vehicle": vehicle},
+            fields=["employee", "employee_name", "assign_as"],
+        )
 
+    @frappe.whitelist()
+    def fetch_service_item_subscription(self, service=None, service_item=None):
+        if self.appointment_with != "Customer" or service is None or service_item is None or not self.party:
+            return None
+
+        packages_with_item = frappe.get_all("Package Service", {"service": service, "service_item": service_item}, pluck="parent")
+        if len(packages_with_item) == 0:
+            return None
+        PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
+        PackageSubscriptionDetails = frappe.qb.DocType("Package Service Subscription Details")
+        query = (
+            frappe.qb.from_(PackageSubscriptionDetails)
+            .left_join(PetPackageSubscription)
+            .on(PetPackageSubscription.name==PackageSubscriptionDetails.parent)
+            .select(PetPackageSubscription.name, PackageSubscriptionDetails.name.as_("row_name"))
+            .where(
+                (PetPackageSubscription.customer==self.party)
+                & (PackageSubscriptionDetails.pet_service_package.isin(packages_with_item))
+                & (PackageSubscriptionDetails.package_qty > PackageSubscriptionDetails.consumed_qty)
+            )
+            .orderby(PetPackageSubscription.subscription_at)
+        )
+        data = query.run(as_dict=True)
+        if len(data) == 0:
+            return None
+        return data[0]
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
         valid_items_both = set()
         valid_items_type_only = set()
         valid_items_size_only = set()
-        
+
         if pet_type and pet_size:
             valid_items_both = set(
                 frappe.db.sql(
@@ -771,11 +770,14 @@ def get_appointments(
         total_pets = cint(appointment.custom_total_pets or "")
         if total_pets:
             subject += f" ,for {total_pets} (Pets)"
-        appointment.update({
-            "subject": subject,
-        })
+        appointment.update(
+            {
+                "subject": subject,
+            }
+        )
 
     return appointments
+
 
 @frappe.whitelist()
 def update_appointment(args, field_map):
@@ -788,6 +790,7 @@ def update_appointment(args, field_map):
     w.set(field_map.end, args.get(field_map.end))
     w.set(field_map.resource, args.get(field_map.resource))
     w.save()
+
 
 # Google Calendar
 def insert_event_in_google_calendar(doc):
@@ -989,9 +992,11 @@ def get_attendees(doc):
 
     return attendees
 
+
 @frappe.whitelist()
 def bulk_submit(doctype, docnames):
     from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
+
     try:
         docnames = frappe.parse_json(docnames)
     except:  # noqa: E722
@@ -1001,16 +1006,22 @@ def bulk_submit(doctype, docnames):
 
     return submit_cancel_or_update_docs(doctype, docnames)
 
+
 @frappe.whitelist()
-def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_start: str | None = None, range_end: str | None = None):
+def export_vehicle_bookings_direct(
+    resource_id: str,
+    current_date: str,
+    range_start: str | None = None,
+    range_end: str | None = None,
+):
     """Generate an .xlsx in-memory and stream it as a download."""
     # ---- figure out window ----
     if range_start and range_end:
         start_date = getdate(range_start)
-        end_date   = getdate(range_end)
+        end_date = getdate(range_end)
     else:
         start_date = getdate(current_date)
-        end_date   = start_date
+        end_date = start_date
 
     start_dt = f"{start_date} 00:00:00"
     end_dt_exclusive = f"{frappe.utils.add_days(end_date, 1)} 00:00:00"
@@ -1029,7 +1040,7 @@ def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_st
         filters,
         order_by="scheduled_time asc",
         limit_page_length=10000,
-        pluck="name"
+        pluck="name",
     )
     wb = Workbook()
     ws = wb.active
@@ -1039,30 +1050,44 @@ def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_st
     fmt = frappe.utils.format_datetime
     for r in rows:
         appointment = frappe.get_doc("Appointment", r)
-        ws.append([
-            "Booking #:", appointment.name
-        ])
-        ws.append([
-            "Appointment Time:", fmt(appointment.scheduled_time)
-        ])
-        ws.append([
-            "Client Name:", appointment.party,
-        ])
-        ws.append([
-            "Mobile Number:", appointment.customer_phone_number or "",
-        ])
-        ws.append([
-            "Location Pin:", appointment.custom_google_maps_link or "",
-        ])
-        ws.append([
-            "Address:", appointment.custom_address or "",
-        ])
-        ws.append([
-            "Number of Pets:", appointment.custom_total_pets or "",
-        ])
-        ws.append([
-            "Pet Details:", "",
-        ])
+        ws.append(["Booking #:", appointment.name])
+        ws.append(["Appointment Time:", fmt(appointment.scheduled_time)])
+        ws.append(
+            [
+                "Client Name:",
+                appointment.party,
+            ]
+        )
+        ws.append(
+            [
+                "Mobile Number:",
+                appointment.customer_phone_number or "",
+            ]
+        )
+        ws.append(
+            [
+                "Location Pin:",
+                appointment.custom_google_maps_link or "",
+            ]
+        )
+        ws.append(
+            [
+                "Address:",
+                appointment.custom_address or "",
+            ]
+        )
+        ws.append(
+            [
+                "Number of Pets:",
+                appointment.custom_total_pets or "",
+            ]
+        )
+        ws.append(
+            [
+                "Pet Details:",
+                "",
+            ]
+        )
         addons = [a.service_addon for a in appointment.custom_appointment_addons]
         addons = ", ".join(addons)
         for row in appointment.custom_appointment_services:
@@ -1073,12 +1098,18 @@ def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_st
             pet_type = pet.pet_type or ""
             pet_size = pet.pet_size or ""
             ws.append(
-                ["", f"• {idx}: {pet_name}, {pet_type}, {pet_size}, {service}, {addons}"]
+                [
+                    "",
+                    f"• {idx}: {pet_name}, {pet_type}, {pet_size}, {service}, {addons}",
+                ]
             )
-            
-        ws.append([
-            "Total Price:", appointment.custom_total_net_amount or "",
-        ])
+
+        ws.append(
+            [
+                "Total Price:",
+                appointment.custom_total_net_amount or "",
+            ]
+        )
         # ws.append([
         #     r.name, r.subject or "", r.custom_vehicle or "", r.customer or "", r.status or "",
         #     fmt(r.scheduled_time) if r.scheduled_time else "",
@@ -1090,7 +1121,7 @@ def export_vehicle_bookings_direct(resource_id: str, current_date: str, range_st
     wb.save(bio)
     bio.seek(0)
 
-    pretty = (resource_id if resource_id != "unassigned" else "Unassigned")
+    pretty = resource_id if resource_id != "unassigned" else "Unassigned"
     filename = f"VehicleBookings-{pretty}-{start_date}"
     if end_date != start_date:
         filename += f"-to-{end_date}"

@@ -9,27 +9,33 @@
   "section_break_hui2",
   "customer",
   "customer_name",
-  "column_break_liqq",
   "mobile_no",
   "email_address",
+  "column_break_liqq",
+  "company",
+  "subscription_at",
   "sales_invoice",
   "amended_from",
-  "subscription_details_section",
-  "subscription_at",
+  "section_break_bzly",
   "package_services",
-  "subscription_package_service",
+  "packages_totals_section",
+  "total_packages_amount",
+  "column_break_onfi",
+  "total_selling_amount",
+  "column_break_slbe",
+  "total_net_amount",
+  "column_break_euco",
+  "total_working_hours",
   "additional_discount_section",
   "additional_discount",
-  "column_break_wplo",
-  "additional_discount_as",
   "totals_section",
-  "total_amount",
-  "total_net_amount",
+  "subscription_qty",
   "status",
+  "grand_total",
   "column_break_jngb",
-  "total_qty",
-  "total_extra_qty",
-  "total_net_qty"
+  "selling_amount",
+  "total_net_selling_amount",
+  "outstanding_amount"
  ],
  "fields": [
   {
@@ -78,11 +84,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "subscription_details_section",
-   "fieldtype": "Section Break",
-   "label": "Subscription Details"
-  },
-  {
    "default": "Today",
    "fieldname": "subscription_at",
    "fieldtype": "Date",
@@ -103,33 +104,15 @@
   },
   {
    "fieldname": "additional_discount",
-   "fieldtype": "Float",
-   "label": "Additional Discount",
+   "fieldtype": "Percent",
+   "label": "Additional Discount %",
    "non_negative": 1,
    "precision": "2"
-  },
-  {
-   "fieldname": "column_break_wplo",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "additional_discount_as",
-   "fieldtype": "Select",
-   "label": "Additional Discount as",
-   "options": "\nPercent\nFixed Amount"
   },
   {
    "fieldname": "totals_section",
    "fieldtype": "Section Break",
    "label": "Totals"
-  },
-  {
-   "fieldname": "total_amount",
-   "fieldtype": "Currency",
-   "label": "Total Amount",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
   },
   {
    "fieldname": "total_net_amount",
@@ -142,35 +125,6 @@
   {
    "fieldname": "column_break_jngb",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_qty",
-   "fieldtype": "Int",
-   "label": "Total Qty",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "total_extra_qty",
-   "fieldtype": "Int",
-   "label": "Total Extra Qty",
-   "non_negative": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "total_net_qty",
-   "fieldtype": "Int",
-   "label": "Total Net Qty",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "subscription_package_service",
-   "fieldtype": "Table",
-   "label": "Subscription Details",
-   "options": "Subscription Package Service"
   },
   {
    "fieldname": "sales_invoice",
@@ -187,13 +141,104 @@
    "label": "Status",
    "options": "\nDraft\nOpen\nClosed\nCompleted\nCancelled",
    "read_only": 1
+  },
+  {
+   "fieldname": "total_selling_amount",
+   "fieldtype": "Currency",
+   "label": "Total Selling Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "subscription_qty",
+   "fieldtype": "Int",
+   "label": "Subscription Qty",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_packages_amount",
+   "fieldtype": "Currency",
+   "label": "Total Packages Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_net_selling_amount",
+   "fieldtype": "Currency",
+   "label": "Total Net Selling Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_bzly",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "packages_totals_section",
+   "fieldtype": "Section Break",
+   "label": "Packages Totals"
+  },
+  {
+   "fieldname": "column_break_onfi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_slbe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "selling_amount",
+   "fieldtype": "Currency",
+   "label": "Selling Amount",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_euco",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_working_hours",
+   "fieldtype": "Int",
+   "label": "Total Working Hours",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-04 11:33:16.609547",
+ "modified": "2025-11-11 16:46:53.662764",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",

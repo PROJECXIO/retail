@@ -13,7 +13,7 @@ class PetService(Document):
 
         type = set()
         size = set()
-    
+
         for row in self.service_items:
             if row.pet_type:
                 type.add(row.pet_type)

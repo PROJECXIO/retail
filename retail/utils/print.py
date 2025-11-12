@@ -23,6 +23,7 @@ try:
 except Exception:
     HAS_PYQRCODE = False
 
+
 def _ean13_value(val: str) -> Optional[str]:
     digits = re.sub(r"\D", "", val or "")
     if len(digits) == 12:

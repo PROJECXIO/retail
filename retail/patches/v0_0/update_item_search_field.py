@@ -1,7 +1,10 @@
 import frappe
 
+
 def execute():
-    for i in frappe.db.sql("SELECT name, stock_uom, item_name, description, item_group, brand FROM `tabItem`"):
+    for i in frappe.db.sql(
+        "SELECT name, stock_uom, item_name, description, item_group, brand FROM `tabItem`"
+    ):
         search = []
 
         name = i[0]
@@ -24,5 +27,5 @@ def execute():
         if isinstance(brand, str):
             search.append(brand)
         search = "".join(search)
-        frappe.db.set_value("Item", name, "custom_search",search)
+        frappe.db.set_value("Item", name, "custom_search", search)
     frappe.db.commit()

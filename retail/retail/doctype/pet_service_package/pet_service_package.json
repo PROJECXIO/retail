@@ -9,15 +9,20 @@
   "title",
   "column_break_bwlr",
   "posting_date",
+  "status",
   "package_service_section",
   "package_services",
-  "totals_section",
-  "total_package_price",
-  "selling_price",
-  "different_price",
-  "column_break_rnxq",
-  "total_package_qty",
+  "section_break_expv",
+  "total_services_rate",
+  "column_break_gwer",
+  "total_services_amount",
+  "column_break_yimn",
   "total_working_hours",
+  "totals_section",
+  "package_qty",
+  "total_selling_amount",
+  "column_break_rnxq",
+  "different_price",
   "amended_from"
  ],
  "fields": [
@@ -39,16 +44,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Pet Service Package",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "package_service_section",
    "fieldtype": "Section Break",
    "label": "Package Service"
@@ -66,28 +61,8 @@
    "label": "Totals"
   },
   {
-   "fieldname": "total_package_price",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Total Package Price",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_rnxq",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_package_qty",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Total Package Qty",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
   },
   {
    "fieldname": "amended_from",
@@ -109,16 +84,9 @@
    "fieldname": "total_working_hours",
    "fieldtype": "Float",
    "label": "Total Working Hours",
-   "precision": "2",
-   "read_only": 1
-  },
-  {
-   "fieldname": "selling_price",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Selling Price",
    "non_negative": 1,
+   "precision": "2",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -128,12 +96,70 @@
    "in_standard_filter": 1,
    "label": "Different Price",
    "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "package_qty",
+   "fieldtype": "Int",
+   "label": "Number of Sessions",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_expv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gwer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nActive\nInactive",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_services_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Services Amount",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_yimn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_services_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Services Rate",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_selling_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Total Selling Amount",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-11-05 13:34:45.995250",
+ "modified": "2025-11-12 12:16:35.857208",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Service Package",
@@ -218,5 +244,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }
