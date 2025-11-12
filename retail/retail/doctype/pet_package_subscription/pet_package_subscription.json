@@ -29,7 +29,6 @@
   "additional_discount_section",
   "additional_discount",
   "totals_section",
-  "subscription_qty",
   "status",
   "grand_total",
   "column_break_jngb",
@@ -151,14 +150,6 @@
    "reqd": 1
   },
   {
-   "default": "1",
-   "fieldname": "subscription_qty",
-   "fieldtype": "Int",
-   "label": "Subscription Qty",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "total_packages_amount",
    "fieldtype": "Currency",
    "label": "Total Packages Amount",
@@ -238,7 +229,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-11 16:46:53.662764",
+ "modified": "2025-11-12 14:25:07.534195",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",
