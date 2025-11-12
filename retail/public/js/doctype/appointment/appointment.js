@@ -352,24 +352,31 @@ frappe.ui.form.on("Appointment Service", {
                     service_item: row.service_item,
                 },
                 callback: function (r) {
+                    const { price } = r.message
                     if (!r.message) {
                         row.subscription = null;
+                        row.subscription_package = null;
                         row.subscription_row = null;
-                        row.is_subscription = 0;
+                        row.price = price;
+                        frm.refresh_field("custom_appointment_services");
                         return
                     }
 
-                    const { name, row_name } = r.message;
+                    const { name, row_name, pet_service_package } = r.message;
                     row.subscription = name;
+                    row.subscription_package = pet_service_package;
                     row.subscription_row = row_name;
-                    row.is_subscription = 1;
+                    row.price = price;
+                    frm.refresh_field("custom_appointment_services");
                 },
                 freeze: true,
             });
         } else {
             row.subscription = null;
+            row.subscription_package = null;
             row.subscription_row = null;
-            row.is_subscription = 0;
+            row.price = 0;
+            frm.refresh_field("custom_appointment_services");
         }
     },
 });

@@ -2,7 +2,6 @@ import json
 from googleapiclient.errors import HttpError
 
 from pypika import functions
-
 import frappe
 from frappe import _
 from frappe.desk.reportview import get_filters_cond
@@ -12,6 +11,7 @@ from frappe.integrations.doctype.google_calendar.google_calendar import (
     format_date_according_to_google_calendar,
 )
 from frappe.query_builder.custom import ConstantColumn
+from frappe.query_builder.functions import Sum
 import io
 from openpyxl import Workbook
 
@@ -134,8 +134,11 @@ class Appointment(BaseAppointment):
             if not exists:
                 continue
             doc = frappe.get_doc("Package Service Subscription Details", exists)
-            if doc.consumed_qty >= doc.package_qty:
+            if qty > 0 and doc.consumed_qty >= doc.package_qty:
                 continue
+            if qty < 0 and doc.consumed_qty == 0:
+                continue
+            
             consumed_qty = doc.consumed_qty + qty
             if consumed_qty > doc.package_qty:
                 continue
@@ -587,21 +590,25 @@ class Appointment(BaseAppointment):
 
     @frappe.whitelist()
     def fetch_service_item_subscription(self, service=None, service_item=None):
+        price = frappe.db.get_value("Pet Service Item", service_item, "rate") or 0.0
         if (
             self.appointment_with != "Customer"
             or service is None
             or service_item is None
             or not self.party
         ):
-            return None
-
+            return {
+                "price": price,
+            }
         packages_with_item = frappe.get_all(
             "Package Service",
             {"service": service, "service_item": service_item},
             pluck="parent",
         )
         if len(packages_with_item) == 0:
-            return None
+            return {
+                "price": price,
+            }
         PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
         PackageSubscriptionDetails = frappe.qb.DocType(
             "Package Service Subscription Details"
@@ -612,6 +619,9 @@ class Appointment(BaseAppointment):
             .on(PetPackageSubscription.name == PackageSubscriptionDetails.parent)
             .select(
                 PetPackageSubscription.name,
+                PackageSubscriptionDetails.pet_service_package,
+                PackageSubscriptionDetails.package_qty,
+                PackageSubscriptionDetails.consumed_qty,
                 PackageSubscriptionDetails.name.as_("row_name"),
             )
             .where(
@@ -630,8 +640,46 @@ class Appointment(BaseAppointment):
         )
         data = query.run(as_dict=True)
         if len(data) == 0:
-            return None
-        return data[0]
+            return {
+                "price": price,
+            }
+        # check if the item is selected in same appointment
+        for r in self.custom_appointment_services:
+            if not r.subscription or not r.subscription_row:
+                continue
+            for d in data:
+                if r.subscription == d.name and r.subscription_row == d.row_name:
+                    consumed_qty = d.consumed_qty + 1
+                    d.update({
+                        "consumed_qty": consumed_qty,
+                    })
+        data = list(filter(lambda x : x.consumed_qty < x.package_qty, data))
+        if len(data) == 0:
+            return {
+                "price": price,
+            }
+        data = data[0]
+
+        # add item price
+        subscription = frappe.get_doc("Pet Package Subscription", data.name)
+        row = None
+        for p in subscription.package_services:
+            if p.name == data.row_name:
+                row = p
+                break
+        if row:
+            diff_percent = (row.selling_amount - row.total_amount) * 100 / row.total_amount
+            price = price - (diff_percent * price / 100)
+            price = price - (row.discount * price / 100)
+            data.update({
+                "price": price,
+            })
+        else:
+            data.update({
+                "price": price,
+            })
+
+        return data
 
     @frappe.whitelist()
     def fetch_service_item(self, service, pet_size, pet_type):
