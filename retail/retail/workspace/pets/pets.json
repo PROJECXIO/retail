@@ -193,10 +193,20 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Appointments",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Booking Request",
+   "link_count": 0,
+   "link_to": "Booking Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -239,7 +249,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-10-29 15:53:14.903866",
+ "modified": "2025-11-13 11:56:07.085207",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pets",
