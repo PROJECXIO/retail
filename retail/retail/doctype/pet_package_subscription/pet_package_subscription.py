@@ -1,12 +1,12 @@
 # Copyright (c) 2025, Projecx Team and contributors
 # For license information, please see license.txt
 
-# import frappe
-# from frappe import _
+import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import cint, flt, getdate
 
-# from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
 
 class PetPackageSubscription(Document):
@@ -37,10 +37,9 @@ class PetPackageSubscription(Document):
         )
         self.total_net_selling_amount = net_total
         self.outstanding_amount = net_total
-        self.grand_total = net_total
 
     def before_submit(self):
-        self.status = "Open"
+        self.status = "Active"
 
     def on_cancel(self):
         self.db_set("status", "Cancelled")
@@ -56,3 +55,74 @@ class PetPackageSubscription(Document):
         for idx, u in enumerate(unique_rows, 1):
             u.set("idx", idx)
             self.append("package_services", u)
+
+    @frappe.whitelist()
+    def create_invoice(self, due_date=False, payments_details=[]):
+        if self.sales_invoice:
+            frappe.msgprint(_("Invoice is created"))
+            return
+
+        invoice = frappe.new_doc("Sales Invoice")
+        invoice.customer = self.customer
+        invoice.posting_date = getdate()
+        invoice.due_date = getdate(due_date) if due_date else getdate()
+        diff_percent1 = (flt(self.selling_amount) - flt(self.total_net_amount)) * 100 / flt(self.total_net_amount)
+        if diff_percent1 != 0:
+            diff_percent1 *= -1
+        # Prepare items
+        for package in self.package_services:
+            diff_percent2 = (flt(package.selling_amount) - flt(package.total_amount)) * 100 / flt(package.total_amount)
+            if diff_percent2 != 0:
+                 diff_percent2 *= -1
+            diff_percent3 = -1 * flt(package.discount)
+            if diff_percent3 != 0:
+                 diff_percent3 *= -1
+            package = frappe.get_doc("Pet Service Package", package.pet_service_package)
+            package_qty = cint(package.package_qty)
+
+            for item in package.package_services:
+                rate = flt(item.selling_rate)
+                print(rate)
+                # apply price different
+                rate = rate - (rate * diff_percent1 / 100)
+                rate = rate - (rate * diff_percent2 / 100)
+                rate = rate - (rate * diff_percent3 / 100)
+                doc = frappe.get_doc("Pet Service Item", item.service_item)
+                item = {
+                    "item_code": doc.item,
+                    "uom": doc.uom,
+                    "qty": package_qty,
+                    "rate": rate,
+                }
+                if rate < 0:
+                    item.update({
+                        "rate": 0,
+                        "discount_percentage": 100,
+                    })
+                print(item)
+                invoice.append(
+                    "items",
+                    item,
+                )
+
+        invoice.additional_discount = flt(self.additional_discount)
+        invoice.flags.ignore_permissions = True
+        invoice.save()
+        invoice.submit()
+
+        for payment in payments_details:
+            mode_of_payment = payment.get("mode_of_payment")
+            paid_amount = flt(payment.get("paid_amount"))
+            if not mode_of_payment or paid_amount == 0:
+                continue
+            payment_doc = get_payment_entry(
+                dt="Sales Invoice", dn=invoice.name, ignore_permissions=True
+            )
+            payment_doc.mode_of_payment = mode_of_payment
+            payment_doc.references[0].allocated_amount = paid_amount
+            payment_doc.flags.ignore_permissions = True
+            payment_doc.save()
+            payment_doc.submit()
+        self.db_set("sales_invoice", invoice.name)
+        
+        return "ok"
