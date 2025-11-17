@@ -140,7 +140,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
-    "Item": "retail.perms.item.has_permission",
+    # "Item": "retail.perms.item.has_permission",
 }
 
 # DocType Class
