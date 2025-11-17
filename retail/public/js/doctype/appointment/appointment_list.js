@@ -5,6 +5,12 @@ frappe.listview_settings["Appointment"] = {
       width: "90%",
       "max-width": "100%",
     });
+
+    $(document).ready(function() {
+        let breadcrumbs = $('#navbar-breadcrumbs');
+        breadcrumbs.find('a').first().text('Pets');
+        breadcrumbs.find('a').first().attr('href', '/app/pets');
+    });
   },
   add_fields: ["status", "order_type"],
   get_indicator: function (doc) {

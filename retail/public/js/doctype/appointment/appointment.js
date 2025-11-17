@@ -1,5 +1,10 @@
 frappe.ui.form.on("Appointment", {
     onload(frm) {
+        $(document).ready(function() {
+            let breadcrumbs = $('#navbar-breadcrumbs');
+            breadcrumbs.find('a').first().text('Pets');
+            breadcrumbs.find('a').first().attr('href', '/app/pets');
+        });
         frm.set_query("pet", "custom_appointment_services", function (doc) {
             return {
                 filters: {
@@ -38,6 +43,7 @@ frappe.ui.form.on("Appointment", {
         );
     },
     refresh(frm) {
+        
         frm.trigger("set_label");
         if (frm.doc.docstatus == 1 && frm.doc.status == "Open") {
             frm.add_custom_button(
