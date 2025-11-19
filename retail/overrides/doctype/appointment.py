@@ -337,10 +337,27 @@ class Appointment(BaseAppointment):
 
     @frappe.whitelist()
     def create_invoice_appointment(self, update_ends_time=False, due_date=None, payments_details=[], tip_amount=0):
-        if self.docstatus == "Completed" or self.custom_sales_invoice or flt(self.custom_total_amount_to_pay) == 0:
+        if self.docstatus == "Completed" or self.custom_sales_invoice:
             return
+        
+        # Distribute received tip
         tip_amount = flt(tip_amount)
+        tip_len = len(self.custom_vehicle_assignment_employees or [])
+        if tip_amount > 0 and tip_len > 0:
+            tip_amount1 = tip_amount / tip_len
+            for emp in self.custom_vehicle_assignment_employees:
+                doc = frappe.new_doc("Appointment Tips Ledger")
+                doc.update({
+                    "appointment": self.name,
+                    "tips_received": tip_amount,
+                    "employee": emp.employee,
+                    "employee_name": emp.employee_name,
+                    "tip_value": tip_amount1,
+                    "tip_percent": 100 / tip_len
+                })
+                doc.save(ignore_permissions=True)
 
+        # Create Invoice
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = self.party
         invoice.posting_date = getdate()
@@ -404,6 +421,7 @@ class Appointment(BaseAppointment):
         invoice.save()
         invoice.submit()
 
+        # Make payments against invoice
         for payment in payments_details:
             mode_of_payment = payment.get("mode_of_payment")
             paid_amount = flt(payment.get("paid_amount"))
@@ -419,12 +437,14 @@ class Appointment(BaseAppointment):
             payment_doc.submit()
         self.db_set("status", "Completed")
         self.db_set("custom_sales_invoice", invoice.name)
-        add_commission = frappe.get_single("Appointment Commission")
+
+        # Add Commissions
+        settings = frappe.get_single("Commissions and Gratuity")
         if (
-            cint(add_commission.enabled) == 1
-            and add_commission.get == "Complete Appointment"
+            cint(settings.enabled_commission) == 1
+            and settings.add_on == "Complete Appointment"
         ):
-            self.add_commissions(add_commission)
+            self.add_commissions(settings)
         if not update_ends_time:
             return "ok"
 
