@@ -44,7 +44,6 @@ class Appointment(BaseAppointment):
         if not self.scheduled_time:
             self.scheduled_time = now_datetime()
 
-        # if start == end this scenario doesn't make sense i.e. it starts and ends at the same second!
         hours_to_add = flt(
             frappe.db.get_single_value(
                 "Appointment Booking Settings", "custom_default_travel_hours"
@@ -63,6 +62,7 @@ class Appointment(BaseAppointment):
 
         self.validate_groomer_rest_time()
         self.set_total_pets()
+        self.update_totals()
         self.set_booking_message()
 
     def before_save(self):
@@ -82,14 +82,15 @@ class Appointment(BaseAppointment):
         if self.flags.update_related_appointments:
             self.update_all_related_appointments()
         self.update_consumed_qty(qty=1)
-        add_commission = frappe.get_single("Appointment Commission")
+        settings = frappe.get_single("Commissions and Gratuity")
         if (
-            cint(add_commission.enabled) == 1
-            and add_commission.add_on == "Submit Appointment"
+            cint(settings.enabled_commission) == 1
+            and settings.add_on == "Submit Appointment"
         ):
-            self.add_commissions(add_commission)
+            self.add_commissions(settings)
 
     def add_commissions(self, settings):
+        return
         for vae in self.custom_vehicle_assignment_employees:
             if not vae.employee or not settings.salary_component:
                 continue
@@ -154,6 +155,35 @@ class Appointment(BaseAppointment):
                 )
             )
         )
+
+    def update_totals(self):
+        self.custom_total_amount = 0
+        self.custom_total_net_amount = 0
+        self.custom_total_amount_to_pay = 0
+        self.custom_total_working_hours = 0
+        # addons
+        for row in self.custom_appointment_addons:
+            self.custom_total_amount += flt(row.rate)
+            self.custom_total_net_amount += flt(row.rate)
+            self.custom_total_amount_to_pay += flt(row.rate)
+
+        # service items
+        for row in self.custom_appointment_services:
+            price = flt(row.price)
+            self.custom_total_amount += price
+            self.custom_total_net_amount += price
+            if not row.subscription:
+                self.custom_total_amount_to_pay += flt(row.price)
+            self.custom_total_working_hours += cint(row.working_hours)
+
+        if self.custom_additional_discount_as == "Percent":
+            self.custom_total_net_amount = flt(self.custom_total_net_amount) - (flt(self.custom_total_net_amount) * flt(self.custom_additional_discount)) / 100
+            self.custom_total_amount_to_pay = flt(self.custom_total_amount_to_pay) - (flt(self.custom_total_amount_to_pay) * flt(self.custom_additional_discount)) / 100
+        elif self.custom_additional_discount_as == "Fixed Amount":
+            if flt(self.custom_additional_discount) > flt(self.custom_total_amount_to_pay):
+                frappe.throw(_("Discount amount can not be greater than required amount to pay"))
+            self.custom_total_net_amount = flt(self.custom_total_net_amount) - flt(self.custom_additional_discount)
+            self.custom_total_amount_to_pay = flt(self.custom_total_amount_to_pay) - flt(self.custom_additional_discount)
 
     def set_booking_message(self):
         template = (
@@ -306,34 +336,38 @@ class Appointment(BaseAppointment):
         return "ok"
 
     @frappe.whitelist()
-    def create_invoice_appointment(self, update_ends_time=False, payments_details=[]):
-        if self.status == "Completed" or self.custom_sales_invoice:
+    def create_invoice_appointment(self, update_ends_time=False, due_date=None, payments_details=[], tip_amount=0):
+        if self.docstatus == "Completed" or self.custom_sales_invoice or flt(self.custom_total_amount_to_pay) == 0:
             return
+        tip_amount = flt(tip_amount)
 
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = self.party
         invoice.posting_date = getdate()
-        invoice.due_date = getdate()
+        invoice.due_date = getdate(due_date) if due_date else getdate()
+
         for service in self.custom_appointment_services:
             if (
                 not service.service
                 or not service.service_item
-                or (service.subscriped and service.sales_invoice)
+                or (service.subscription)
             ):
                 continue
             doc = frappe.get_doc("Pet Service Item", service.service_item)
             rate = flt(service.price)
             if flt(service.discount) > 0:
-                if service.discount_as == "Percent":
-                    rate = rate - (flt(service.discount) * rate / 100)
-                elif service.discount_as == "Fixed Amount":
-                    rate = rate - flt(service.discount)
+                rate = rate - (flt(service.discount) * rate / 100)
             item = {
                 "item_code": doc.item,
                 "uom": doc.uom,
                 "qty": 1,
                 "rate": rate,
             }
+            if rate <= 0:
+                item.update({
+                    "rate": 0,
+                    "discount_percentage": 100,
+                })
 
             invoice.append(
                 "items",
@@ -355,12 +389,17 @@ class Appointment(BaseAppointment):
                 item,
             )
 
+        if len(invoice.items) == 0:
+            self.db_set("status", "Completed")
+            return
+
         additional_discount = flt(self.custom_additional_discount)
         if additional_discount > 0:
             if self.custom_additional_discount_as == "Fixed Amount":
                 invoice.discount_amount = additional_discount
             elif self.custom_additional_discount_as == "Percent":
-                invoice.discount_amount = additional_discount
+                invoice.additional_discount_percentage = additional_discount
+        
         invoice.flags.ignore_permissions = True
         invoice.save()
         invoice.submit()
@@ -589,7 +628,17 @@ class Appointment(BaseAppointment):
         return []
 
     @frappe.whitelist()
-    def fetch_service_item_subscription(self, service=None, service_item=None):
+    def fetch_service_item_subscription(self, service=None, pet=None):
+        pet = frappe.db.exists("Pet", pet)
+        service = frappe.db.exists("Pet Service", service)
+        if not service or not pet:
+            frappe.msgprint(_("Select Pet and Service to fetch details"))
+            return
+        pet = frappe.get_doc("Pet", pet)
+        service_item = self.get_service_item(service, pet.pet_size, pet.pet_type)
+        if not service_item:
+            return
+
         price = frappe.db.get_value("Pet Service Item", service_item, "rate") or 0.0
         if (
             self.appointment_with != "Customer"
@@ -599,6 +648,7 @@ class Appointment(BaseAppointment):
         ):
             return {
                 "price": price,
+                "service_item": service_item,
             }
         packages_with_item = frappe.get_all(
             "Package Service",
@@ -608,6 +658,7 @@ class Appointment(BaseAppointment):
         if len(packages_with_item) == 0:
             return {
                 "price": price,
+                "service_item": service_item,
             }
         PetPackageSubscription = frappe.qb.DocType("Pet Package Subscription")
         PackageSubscriptionDetails = frappe.qb.DocType(
@@ -642,6 +693,7 @@ class Appointment(BaseAppointment):
         if len(data) == 0:
             return {
                 "price": price,
+                "service_item": service_item,
             }
         # check if the item is selected in same appointment
         for r in self.custom_appointment_services:
@@ -659,9 +711,15 @@ class Appointment(BaseAppointment):
         if len(data) == 0:
             return {
                 "price": price,
+                "service_item": service_item,
             }
         data = data[0]
-
+        remaining_sessions = cint(data["package_qty"]) - cint(data["consumed_qty"])
+        if remaining_sessions < 0:
+            remaining_sessions = 0
+        data.update({
+            "remaining_sessions": remaining_sessions,
+        })
         # add item price
         subscription = frappe.get_doc("Pet Package Subscription", data.name)
         row = None
@@ -678,19 +736,26 @@ class Appointment(BaseAppointment):
             data.update(
                 {
                     "price": price,
+                    "service_item": service_item,
                 }
             )
         else:
             data.update(
                 {
                     "price": price,
+                    "service_item": service_item,
                 }
             )
 
         return data
 
     @frappe.whitelist()
-    def fetch_service_item(self, service, pet_size, pet_type):
+    def get_service_item(self, service, pet_size, pet_type):
+        print(service, pet_size, pet_type)
+        print(service, pet_size, pet_type)
+        print(service, pet_size, pet_type)
+        print(service, pet_size, pet_type)
+        print(service, pet_size, pet_type)
         valid_items_both = set()
         valid_items_type_only = set()
         valid_items_size_only = set()
@@ -740,10 +805,7 @@ class Appointment(BaseAppointment):
         valid_items = valid_items_both | valid_items_type_only | valid_items_size_only
         if not valid_items:
             frappe.msgprint(_("No valid item found for the pet"))
-            return {
-                "item": None,
-                "rate": 0,
-            }
+            return None
 
         exists = frappe.db.exists(
             "Pet Service Item Detail",
@@ -756,16 +818,10 @@ class Appointment(BaseAppointment):
                 rate = rate - (flt(doc.discount) * rate / 100)
             if doc.discount_as == "Fixed Amount":
                 rate = rate - flt(doc.discount)
-            return {
-                "item": doc.pet_service_item,
-                "rate": rate,
-            }
+            return doc.pet_service_item
         else:
             frappe.msgprint(_("No valid item found for the pet"))
-        return {
-            "item": None,
-            "rate": 0,
-        }
+        return None
 
 
 @frappe.whitelist()
