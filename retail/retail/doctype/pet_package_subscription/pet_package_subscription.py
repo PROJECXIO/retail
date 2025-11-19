@@ -38,11 +38,11 @@ class PetPackageSubscription(Document):
         self.total_net_selling_amount = net_total
         self.outstanding_amount = net_total
 
-    def before_submit(self):
-        self.status = "Active"
+    def on_submit(self):
+        self.update_status_field(False)
 
     def on_cancel(self):
-        self.db_set("status", "Cancelled")
+        self.update_status_field(False)
 
     def merge_pkgs(self):
         added = []
@@ -94,7 +94,7 @@ class PetPackageSubscription(Document):
                     "qty": package_qty,
                     "rate": rate,
                 }
-                if rate < 0:
+                if rate <= 0:
                     item.update({
                         "rate": 0,
                         "discount_percentage": 100,
@@ -126,3 +126,46 @@ class PetPackageSubscription(Document):
         self.db_set("sales_invoice", invoice.name)
         
         return "ok"
+
+    def update_subscription_consuming_status(self, update_status=True):
+        total = 0
+        consumed = 0
+        for pkg in self.package_services:
+            total += cint(pkg.package_qty)
+            consumed += cint(pkg.consumed_qty)
+        
+        if consumed == 0:
+            self.db_set("consumed_status", "Not Consumed", update_modified=False)
+        elif total > consumed:
+            self.db_set("consumed_status", "Partly Consumed", update_modified=False)
+        else:
+            self.db_set("consumed_status", "Consumed", update_modified=False)
+        
+        if update_status:
+            self.update_subscription_status()
+
+    def update_subscription_payment_status(self, update_status=True):
+        if flt(self.outstanding_amount) == 0:
+            self.db_set("payment_status", "Paid", update_modified=False)
+        elif  flt(self.selling_amount) > flt(self.outstanding_amount):
+            self.db_set("payment_status", "Partly Paid", update_modified=False)
+        else:
+            self.db_set("payment_status", "Not Paid", update_modified=False)
+        if update_status:
+            self.update_subscription_status()
+
+    def update_subscription_status(self):
+        if self.docstatus == 0:
+            self.db_set("status", "Draft", update_modified=False)
+        if self.docstatus == 2:
+            self.db_set("status", "Cancelled", update_modified=False)
+            return
+        if self.payment_status == "Paid" and self.consumed_status == "Consumed":
+            self.db_set("status", "Completed", update_modified=False)
+        else:
+            self.db_set("status", "Active", update_modified=False)
+    
+    def update_status_field(self, update_status=True):
+        self.update_subscription_consuming_status(update_status)
+        self.update_subscription_payment_status(update_status)
+        self.update_subscription_status()
