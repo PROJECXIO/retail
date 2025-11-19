@@ -63,6 +63,7 @@
    "allow_bulk_edit": 1,
    "fieldname": "employees",
    "fieldtype": "Table",
+   "ignore_user_permissions": 1,
    "label": "Assigned Employees",
    "options": "Vehicle Assignment Employee",
    "reqd": 1
@@ -71,7 +72,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-12 15:13:32.588659",
+ "modified": "2025-11-17 16:39:41.878022",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Vehicle Assignment",

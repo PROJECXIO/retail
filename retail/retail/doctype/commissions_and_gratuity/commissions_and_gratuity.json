@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-10-29 15:12:27.357080",
+ "creation": "2025-11-18 11:50:18.072870",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "enabled",
   "commissions_section",
+  "enabled_commission",
+  "section_break_bhpd",
   "groomer_commission",
   "column_break_nkly",
   "driver_commission",
@@ -17,6 +18,8 @@
   "column_break_dfkk",
   "add_on",
   "tips_section",
+  "gratuity_tracking",
+  "section_break_xndr",
   "groomer_tips",
   "column_break_hnma",
   "driver_tips",
@@ -25,52 +28,77 @@
  ],
  "fields": [
   {
+   "fieldname": "commissions_section",
+   "fieldtype": "Section Break",
+   "label": "Commissions"
+  },
+  {
    "default": "0",
-   "fieldname": "enabled",
+   "fieldname": "enabled_commission",
    "fieldtype": "Check",
-   "label": "Enabled Commisions & Tips"
+   "label": "Enabled Commisions"
+  },
+  {
+   "fieldname": "section_break_bhpd",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0.00",
-   "depends_on": "enabled",
-   "fieldname": "driver_commission",
-   "fieldtype": "Percent",
-   "label": "Driver (%)",
-   "mandatory_depends_on": "enabled",
-   "precision": "2"
-  },
-  {
-   "default": "0.00",
-   "depends_on": "enabled",
+   "depends_on": "enabled_commission",
    "fieldname": "groomer_commission",
    "fieldtype": "Percent",
    "label": "Groomer (%)",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "enabled_commission",
    "precision": "2"
+  },
+  {
+   "fieldname": "column_break_nkly",
+   "fieldtype": "Column Break"
   },
   {
    "default": "0.00",
-   "depends_on": "enabled",
-   "fieldname": "other_commission",
+   "depends_on": "enabled_commission",
+   "fieldname": "driver_commission",
    "fieldtype": "Percent",
-   "label": "Other (%)",
-   "mandatory_depends_on": "enabled",
+   "label": "Driver (%)",
+   "mandatory_depends_on": "enabled_commission",
    "precision": "2"
   },
   {
-   "depends_on": "enabled",
+   "fieldname": "column_break_sauu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0.00",
+   "depends_on": "enabled_commission",
+   "fieldname": "other_commission",
+   "fieldtype": "Percent",
+   "label": "Other (%)",
+   "mandatory_depends_on": "enabled_commission",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_invl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "enabled_commission",
    "fieldname": "salary_component",
    "fieldtype": "Link",
    "label": "Salary Component",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "enabled_commission",
    "options": "Salary Component"
   },
   {
-   "depends_on": "enabled",
+   "fieldname": "column_break_dfkk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enabled_commission",
    "fieldname": "add_on",
    "fieldtype": "Select",
    "label": "Add On",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "enabled_commission",
    "options": "\nSubmit Appointment\nComplete Appointment"
   },
   {
@@ -79,12 +107,22 @@
    "label": "Tips"
   },
   {
+   "default": "0",
+   "fieldname": "gratuity_tracking",
+   "fieldtype": "Check",
+   "label": "Gratuity Tracking"
+  },
+  {
+   "fieldname": "section_break_xndr",
+   "fieldtype": "Section Break"
+  },
+  {
    "default": "0.00",
-   "depends_on": "enabled",
+   "depends_on": "gratuity_tracking",
    "fieldname": "groomer_tips",
    "fieldtype": "Percent",
    "label": "Groomer (%)",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "gratuity_tracking",
    "precision": "2"
   },
   {
@@ -93,11 +131,11 @@
   },
   {
    "default": "0.00",
-   "depends_on": "enabled",
+   "depends_on": "gratuity_tracking",
    "fieldname": "driver_tips",
    "fieldtype": "Percent",
    "label": "Driver (%)",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "gratuity_tracking",
    "precision": "2"
   },
   {
@@ -106,43 +144,22 @@
   },
   {
    "default": "0.00",
-   "depends_on": "enabled",
+   "depends_on": "gratuity_tracking",
    "fieldname": "other_tips",
    "fieldtype": "Percent",
    "label": "Other (%)",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "gratuity_tracking",
    "precision": "2"
-  },
-  {
-   "fieldname": "commissions_section",
-   "fieldtype": "Section Break",
-   "label": "Commissions"
-  },
-  {
-   "fieldname": "column_break_nkly",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_sauu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_invl",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_dfkk",
-   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-12 13:54:36.969478",
+ "modified": "2025-11-18 11:50:18.072870",
  "modified_by": "Administrator",
  "module": "Retail",
- "name": "Appointment Commission",
+ "name": "Commissions and Gratuity",
  "owner": "Administrator",
  "permissions": [
   {

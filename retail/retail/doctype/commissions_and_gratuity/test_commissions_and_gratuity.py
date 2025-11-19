@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestAppointmentCommission(FrappeTestCase):
-    pass
+class TestCommissionsandGratuity(FrappeTestCase):
+	pass

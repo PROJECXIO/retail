@@ -21,12 +21,15 @@ frappe.ui.form.on("Pet Package Subscription", {
                     label: __("Mode of Payment"),
                     options: "Mode of Payment",
                     reqd: 1,
+                    in_list_view:true,
                 },
                 {
                     fieldname: "paid_amount",
                     fieldtype: "Currency",
                     label: __("Paid Amount"),
                     options: "company:company_currency",
+                    default: 0.0,
+                    in_list_view:true,
                     onchange: function () {
                         dialog.fields_dict.payments_details.df.data.some((d) => {
                             if (d.idx == this.doc.idx) {
@@ -38,8 +41,7 @@ frappe.ui.form.on("Pet Package Subscription", {
                     },
                 },
             ];
-
-            let dialog = new frappe.ui.Dialog({
+            const dialog = new frappe.ui.Dialog({
                 title: __("Prepare Invoice"),
                 fields: [
                     {
@@ -108,7 +110,6 @@ frappe.ui.form.on("Pet Package Subscription", {
         frm.set_value("total_packages_amount", total_packages_amount);
         frm.set_value("total_selling_amount", total_selling_amount);
         frm.set_value("total_net_amount", total_net_amount);
-        frm.set_value("grand_total", total_net_amount);
         frm.set_value("outstanding_amount", total_net_amount);
         frm.set_value("selling_amount", total_net_amount);
         frm.set_value("total_working_hours", total_working_hours);
@@ -168,7 +169,7 @@ frappe.ui.form.on("Package Service Subscription Details", {
         frm.trigger("calculate_totals");
     },
 
-    selling_rate(frm) {
+    selling_amount(frm) {
         frm.trigger("calculate_totals");
     },
 });

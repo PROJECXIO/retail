@@ -30,7 +30,8 @@
   "additional_discount",
   "totals_section",
   "status",
-  "grand_total",
+  "consumed_status",
+  "payment_status",
   "column_break_jngb",
   "selling_amount",
   "total_net_selling_amount",
@@ -138,7 +139,8 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nDraft\nOpen\nClosed\nCompleted\nCancelled",
+   "no_copy": 1,
+   "options": "\nDraft\nActive\nCompleted\nCancelled",
    "read_only": 1
   },
   {
@@ -202,14 +204,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "grand_total",
-   "fieldtype": "Currency",
-   "label": "Grand Total",
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "Outstanding Amount",
@@ -223,13 +217,33 @@
    "label": "Company",
    "options": "Company",
    "reqd": 1
+  },
+  {
+   "default": "Not Consumed",
+   "fieldname": "consumed_status",
+   "fieldtype": "Select",
+   "label": "Consumed Status",
+   "no_copy": 1,
+   "options": "\nNot Consumed\nConsumed\nPartly Consumed",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Not Paid",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "no_copy": 1,
+   "options": "\nPaid\nPartly Paid\nNot Paid",
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-12 14:25:07.534195",
+ "modified": "2025-11-17 17:27:13.222829",
  "modified_by": "Administrator",
  "module": "Retail",
  "name": "Pet Package Subscription",

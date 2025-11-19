@@ -1,5 +1,10 @@
 frappe.ui.form.on("Appointment", {
     onload(frm) {
+        $(document).ready(function () {
+            let breadcrumbs = $("#navbar-breadcrumbs");
+            breadcrumbs.find("a").first().text("Pets");
+            breadcrumbs.find("a").first().attr("href", "/app/pets");
+        });
         frm.set_query("pet", "custom_appointment_services", function (doc) {
             return {
                 filters: {
@@ -39,82 +44,14 @@ frappe.ui.form.on("Appointment", {
     },
     refresh(frm) {
         frm.trigger("set_label");
+        frm.trigger("add_close_btn");
+        frm.trigger("add_reopen_btn");
+        if (frm.doc.status !== "Completed" && !frm.doc.custom_sales_invoice) {
+            frm.trigger("add_create_invoice_btn");
+        }
+    },
+    add_close_btn(frm) {
         if (frm.doc.docstatus == 1 && frm.doc.status == "Open") {
-            frm.add_custom_button(
-                __("Complete Appointment"),
-                () => {
-                    const table_fields = [
-                        {
-                            fieldname: "mode_of_payment",
-                            fieldtype: "Link",
-                            in_list_view: 1,
-                            label: __("Mode of Payment"),
-                            options: "Mode of Payment",
-                            reqd: 1,
-                        },
-                        {
-                            fieldname: "paid_amount",
-                            fieldtype: "Currency",
-                            in_list_view: 1,
-                            label: __("Paid Amount"),
-                            options: "company:company_currency",
-                            onchange: function () {
-                                dialog.fields_dict.payments_details.df.data.some((d) => {
-                                    if (d.idx == this.doc.idx) {
-                                        d.paid_amount = this.value;
-                                        dialog.fields_dict.payments_details.grid.refresh();
-                                        return true;
-                                    }
-                                });
-                            },
-                        },
-                    ];
-                    let dialog = new frappe.ui.Dialog({
-                        title: __("Complete Appointment"),
-                        fields: [
-                            {
-                                fieldtype: "HTML",
-                                fieldname: "info_message",
-                                options: `
-                                    <div style="padding:16px 0; color:#666;">
-                                        ${__(
-                                    "Are you sure you want to complete the appointment?"
-                                )}
-                                    </div>
-                                `,
-                            },
-                            {
-                                label: __("Update Ends time"),
-                                fieldtype: "Check",
-                                fieldname: "update_ends_time",
-                            },
-                            {
-                                fieldname: "payments_details",
-                                fieldtype: "Table",
-                                label: __("Customer Payments"),
-                                cannot_add_rows: false,
-                                in_place_edit: true,
-                                data: [],
-                                fields: table_fields,
-                            },
-                        ],
-                        primary_action(data) {
-                            frappe.call({
-                                method: "create_invoice_appointment",
-                                doc: frm.doc,
-                                args: data,
-                                callback: function (r) {
-                                    frm.reload_doc();
-                                },
-                            });
-                            dialog.hide();
-                        },
-                        primary_action_label: __("Complete Appointment"),
-                    });
-                    dialog.show();
-                },
-                __("Action")
-            );
             frm.add_custom_button(
                 __("Close Appointment"),
                 () => {
@@ -134,6 +71,8 @@ frappe.ui.form.on("Appointment", {
                 __("Action")
             );
         }
+    },
+    add_reopen_btn(frm) {
         if (frm.doc.docstatus == 1 && frm.doc.status == "Closed") {
             frm
                 .add_custom_button(__("Re-Open"), () => {
@@ -148,6 +87,97 @@ frappe.ui.form.on("Appointment", {
                 .addClass("btn-primary")
                 .removeClass("btn-default");
         }
+    },
+    add_create_invoice_btn(frm) {
+        frm.add_custom_button(
+            __("Complete Appointment"),
+            () => {
+                const table_fields = [
+                    {
+                        fieldname: "mode_of_payment",
+                        fieldtype: "Link",
+                        in_list_view: 1,
+                        label: __("Mode of Payment"),
+                        options: "Mode of Payment",
+                        reqd: 1,
+                    },
+                    {
+                        fieldname: "paid_amount",
+                        fieldtype: "Currency",
+                        in_list_view: 1,
+                        label: __("Paid Amount"),
+                        options: "company:company_currency",
+                        onchange: function () {
+                            dialog.fields_dict.payments_details.df.data.some((d) => {
+                                if (d.idx == this.doc.idx) {
+                                    d.paid_amount = this.value;
+                                    dialog.fields_dict.payments_details.grid.refresh();
+                                    return true;
+                                }
+                            });
+                        },
+                    },
+                ];
+                let dialog = new frappe.ui.Dialog({
+                    title: __("Complete Appointment"),
+                    fields: [
+                        {
+                            fieldtype: "HTML",
+                            fieldname: "info_message",
+                            options: `
+                                    <div style="padding:16px 0; color:#666;">
+                                        ${__(
+                                "Are you sure you want to complete the appointment?"
+                            )}
+                                    </div>
+                                `,
+                        },
+                        {
+                            label: __("Update Ends time"),
+                            fieldtype: "Check",
+                            fieldname: "update_ends_time",
+                        },
+                        {
+                            label: __("Invoice Due date"),
+                            fieldtype: "Date",
+                            fieldname: "due_date",
+                            default: frappe.datetime.nowdate(),
+                            reqd: 1,
+                        },
+                        {
+                            fieldname: "payments_details",
+                            fieldtype: "Table",
+                            label: __("Customer Payments"),
+                            cannot_add_rows: false,
+                            in_place_edit: true,
+                            data: [],
+                            fields: table_fields,
+                        },
+                        {
+                            fieldname: "tip_amount",
+                            fieldtype: "Currency",
+                            in_list_view: 1,
+                            label: __("Tip received"),
+                            options: "company:company_currency",
+                        },
+                    ],
+                    primary_action(data) {
+                        frappe.call({
+                            method: "create_invoice_appointment",
+                            doc: frm.doc,
+                            args: data,
+                            callback: function (r) {
+                                frm.reload_doc();
+                            },
+                        });
+                        dialog.hide();
+                    },
+                    primary_action_label: __("Complete Appointment"),
+                });
+                dialog.show();
+            },
+            __("Action")
+        );
     },
     custom_vehicle(frm) {
         frappe.call({
@@ -261,25 +291,20 @@ frappe.ui.form.on("Appointment", {
         let total_price = 0;
         let total_net_price = 0;
         let total_amount_to_pay = 0;
+        let total_working_hours = 0;
         (frm.doc.custom_appointment_addons || []).forEach((row) => {
             total_price += flt(row.rate);
             total_net_price += flt(row.rate);
             total_amount_to_pay += flt(row.rate);
         });
         (frm.doc.custom_appointment_services || []).forEach((row) => {
-            total_price += flt(row.price);
-            let amount = 0;
-            if (row.discount_as == "Percent") {
-                amount = flt(row.price) - (flt(row.price) * flt(row.discount)) / 100;
-            } else if (row.discount_as == "Fixed Amount") {
-                amount = flt(row.price) - flt(row.discount);
-            } else {
-                amount = flt(row.price);
+            price = flt(row.price);
+            total_price += price;
+            total_net_price += price;
+            if (!row.subscription) {
+                total_amount_to_pay += flt(row.price);
             }
-            total_net_price += amount;
-            if (!row.sales_invoice) {
-                total_amount_to_pay += amount;
-            }
+            total_working_hours += cint(row.working_hours);
         });
 
         if (frm.doc.custom_additional_discount_as == "Percent") {
@@ -298,13 +323,15 @@ frappe.ui.form.on("Appointment", {
         }
 
         frm.set_value("custom_total_amount", total_price);
-        frm.refresh_field("custom_total_amount");
-
         frm.set_value("custom_total_net_amount", total_net_price);
-        frm.refresh_field("custom_total_net_amount");
-
         frm.set_value("custom_total_amount_to_pay", total_amount_to_pay);
-        frm.refresh_field("custom_total_amount_to_pay");
+        frm.set_value("custom_total_working_hours", total_working_hours);
+        frm.refresh_fields([
+            "custom_total_amount",
+            "custom_total_net_amount",
+            "custom_total_amount_to_pay",
+            "custom_total_working_hours",
+        ]);
     },
     custom_send(frm) {
         let mobile = frm.doc.customer_phone_number || "";
@@ -341,32 +368,42 @@ frappe.ui.form.on("Appointment Service", {
     discount(frm, cdt, cdn) {
         frm.trigger("update_total_price");
     },
-    async service_item(frm, cdt, cdn) {
+    async service(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
-        if (row.service_item) {
+        if (row.service && row.pet) {
             frappe.call({
                 method: "fetch_service_item_subscription",
                 doc: frm.doc,
                 args: {
                     service: row.service,
-                    service_item: row.service_item,
+                    pet: row.pet,
                 },
                 callback: function (r) {
-                    const { price } = r.message
+                    const { price } = r.message;
                     if (!r.message) {
                         row.subscription = null;
                         row.subscription_package = null;
                         row.subscription_row = null;
+                        row.service_item = null;
+                        row.remaining_sessions = 0;
                         row.price = price;
                         frm.refresh_field("custom_appointment_services");
-                        return
+                        return;
                     }
 
-                    const { name, row_name, pet_service_package } = r.message;
+                    const {
+                        name,
+                        row_name,
+                        pet_service_package,
+                        service_item,
+                        remaining_sessions,
+                    } = r.message;
                     row.subscription = name;
                     row.subscription_package = pet_service_package;
                     row.subscription_row = row_name;
                     row.price = price;
+                    row.remaining_sessions = remaining_sessions;
+                    row.service_item = service_item;
                     frm.refresh_field("custom_appointment_services");
                 },
                 freeze: true,
@@ -375,6 +412,8 @@ frappe.ui.form.on("Appointment Service", {
             row.subscription = null;
             row.subscription_package = null;
             row.subscription_row = null;
+            row.service_item = null;
+            row.remaining_sessions = 0;
             row.price = 0;
             frm.refresh_field("custom_appointment_services");
         }
