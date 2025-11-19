@@ -33,6 +33,9 @@ frappe.ui.form.on("Customer", {
             }
         });
     },
+    custom_add_new_pet: function(frm){
+        frappe.new_doc("Pet", {"customer": frm.doc.name});
+    },
 });
 
 frappe.ui.form.on("Customer Address", {
