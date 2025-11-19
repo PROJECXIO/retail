@@ -11,3 +11,4 @@ retail.patches.v0_0.update_customers_contacts
 retail.patches.v0_0.update_customers_name
 retail.patches.v0_0.update_item_search_field
 retail.patches.v0_0.remove_appointment_fields
+retail.patches.v0_0.add_vat_item_prices
