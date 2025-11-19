@@ -46,7 +46,9 @@ frappe.ui.form.on("Appointment", {
         frm.trigger("set_label");
         frm.trigger("add_close_btn");
         frm.trigger("add_reopen_btn");
-        frm.trigger("add_create_invoice_btn");
+        if (frm.doc.status !== "Completed" && !frm.doc.custom_sales_invoice) {
+            frm.trigger("add_create_invoice_btn");
+        }
     },
     add_close_btn(frm) {
         if (frm.doc.docstatus == 1 && frm.doc.status == "Open") {
@@ -389,7 +391,13 @@ frappe.ui.form.on("Appointment Service", {
                         return;
                     }
 
-                    const { name, row_name, pet_service_package, service_item, remaining_sessions } = r.message;
+                    const {
+                        name,
+                        row_name,
+                        pet_service_package,
+                        service_item,
+                        remaining_sessions,
+                    } = r.message;
                     row.subscription = name;
                     row.subscription_package = pet_service_package;
                     row.subscription_row = row_name;
