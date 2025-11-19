@@ -388,6 +388,7 @@ frappe.ui.form.on("Appointment Service", {
                         row.remaining_sessions = 0;
                         row.price = price;
                         frm.refresh_field("custom_appointment_services");
+                        frm.trigger("update_total_price");
                         return;
                     }
 
@@ -405,6 +406,7 @@ frappe.ui.form.on("Appointment Service", {
                     row.remaining_sessions = remaining_sessions;
                     row.service_item = service_item;
                     frm.refresh_field("custom_appointment_services");
+                    frm.trigger("update_total_price");
                 },
                 freeze: true,
             });
@@ -416,6 +418,7 @@ frappe.ui.form.on("Appointment Service", {
             row.remaining_sessions = 0;
             row.price = 0;
             frm.refresh_field("custom_appointment_services");
+            frm.trigger("update_total_price");
         }
     },
 });
